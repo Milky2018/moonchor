@@ -1,5 +1,5 @@
 ///|
-enum Located[T, L] {
+enum Located[T, _] {
   Wrap(T)
   Empty
 }
@@ -26,10 +26,10 @@ impl Eq for &Location with op_equal(self, other) {
 }
 
 ///|
-struct Unwrapper[L] {}
+struct Unwrapper[_] {}
 
 ///|
-pub fn unwrap[T, L](self : Unwrapper[L], v : Located[T, L]) -> T {
+pub fn Unwrapper::unwrap[T, L](_ : Unwrapper[L], v : Located[T, L]) -> T {
   expect(v)
 }
 
@@ -41,7 +41,7 @@ struct ChoreoContext {
 
 enum NetworkConfig {
   LocalConfig(Map[(&Location, &Location), @channel.T[Json]])
-  HttpConfig // TODO: 
+  // HttpConfig
 }
 
 pub fn make_local_config(locations: Array[&Location]) -> NetworkConfig {
@@ -65,9 +65,6 @@ pub async fn run_choreo[T, L: Location](config: NetworkConfig, choreography: asy
         channels: channels
       }
       choreography!(context)
-    }
-    _ => {
-      abort("Unsupported network configuration")
     }
   }
 }
