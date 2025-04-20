@@ -1,0 +1,6 @@
+{
+  "import": [
+    "peter-jerry-ye/async/promise",
+    "peter-jerry-ye/async/channel"
+  ]
+}
