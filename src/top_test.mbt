@@ -2,7 +2,7 @@
 priv struct Buyer {} derive(Eq, Show, Hash)
 
 ///|
-impl Location for Buyer with name(_) {
+impl @moonchor.Location for Buyer with name(_) {
   "buyer"
 }
 
@@ -10,7 +10,7 @@ impl Location for Buyer with name(_) {
 priv struct Seller {} derive(Eq, Show, Hash)
 
 ///|
-impl Location for Seller with name(_) {
+impl @moonchor.Location for Seller with name(_) {
   "seller"
 }
 
@@ -35,7 +35,7 @@ fn get_delivery_date(_title : String) -> String {
 }
 
 ///|
-async fn bookshop_v1(ctx : ChoreoContext) -> Unit {
+async fn bookshop_v1(ctx : @moonchor.ChoreoContext) -> Unit {
   let buyer = ctx.get_location(Buyer::{  })
   let seller = ctx.get_location(Seller::{  })
   let title_at_buyer = ctx.locally(buyer, fn(_unwrapper) { get_title() })
@@ -68,7 +68,7 @@ async fn bookshop_v1(ctx : ChoreoContext) -> Unit {
 }
 
 ///|
-async fn bookshop_v2(ctx : ChoreoContext) -> Unit {
+async fn bookshop_v2(ctx : @moonchor.ChoreoContext) -> Unit {
   let buyer = ctx.get_location(Buyer::{  })
   let seller = ctx.get_location(Seller::{  })
   let title_at_buyer = ctx.locally(buyer, fn(_unwrapper) { get_title() })
@@ -108,12 +108,12 @@ test "bookshop 1.0" {
   //   I will not sell the book
   let buyer = Buyer::{  }
   let seller = Seller::{  }
-  let backend = make_local_backend([buyer, seller])
+  let backend = @moonchor.make_local_backend([buyer, seller])
   let _buyer_handler = @promise.spawn(async fn(_) {
-    run_choreo!(backend, bookshop_v1, buyer)
+    @moonchor.run_choreo!(backend, bookshop_v1, buyer)
   })
   let _seller_handler = @promise.spawn(async fn(_) {
-    run_choreo!(backend, bookshop_v1, seller)
+    @moonchor.run_choreo!(backend, bookshop_v1, seller)
   })
 
 }
@@ -125,15 +125,14 @@ test "bookshop 2.0" {
   //   The book will be delivered on 2025-10-01
   let buyer = Buyer::{  }
   let seller = Seller::{  }
-  let backend = make_local_backend(
-    [buyer, seller],
+  let backend = @moonchor.make_local_backend([buyer, seller],
     // logger=make_console_logger(),
   )
   let _buyer_handler = @promise.spawn(async fn(_) {
-    run_choreo!(backend, bookshop_v2, buyer)
+    @moonchor.run_choreo!(backend, bookshop_v2, buyer)
   })
   let _seller_handler = @promise.spawn(async fn(_) {
-    run_choreo!(backend, bookshop_v2, seller)
+    @moonchor.run_choreo!(backend, bookshop_v2, seller)
   })
 
 }

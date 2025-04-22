@@ -1,5 +1,5 @@
 ///|
-pub async fn async_each[T](iter : Iter[T], f : async (T) -> Unit) -> Unit {
+async fn async_each[T](iter : Iter[T], f : async (T) -> Unit) -> Unit {
   let fst = iter.head()
   if fst is Some(v) {
     f!(v)
@@ -8,7 +8,7 @@ pub async fn async_each[T](iter : Iter[T], f : async (T) -> Unit) -> Unit {
 }
 
 ///|
-pub async fn async_each2[A, B](
+async fn async_each2[A, B](
   iter : Iter2[A, B],
   f : async (A, B) -> Unit
 ) -> Unit {

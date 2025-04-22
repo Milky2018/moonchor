@@ -1,10 +1,10 @@
-///|
+///| Represents a value located at a specific location.
 enum Located[T, _] {
   Wrap(T)
   Empty
 }
 
-///|
+///| 
 fn unwrap[T, L](self : Located[T, L]) -> T {
   match self {
     Located::Wrap(t) => t
@@ -33,7 +33,7 @@ struct ChoreoContext {
   logger : &Logger
 }
 
-///|
+///| Secure location instantiation. If the location is not registered, abort.
 pub fn get_location[L : Location](self : ChoreoContext, loc : L) -> L {
   if self.backend.check_location(loc) {
     loc
@@ -44,7 +44,8 @@ pub fn get_location[L : Location](self : ChoreoContext, loc : L) -> L {
   }
 }
 
-///|
+///| Run a choreography in the given location and backend.
+/// Default logger is the backend logger.
 pub async fn run_choreo[T, L : Location](
   backend : Backend,
   choreography : async (ChoreoContext) -> T,
@@ -61,15 +62,13 @@ pub async fn run_choreo[T, L : Location](
   choreography!(context)
 }
 
-///|
+///| Local computation at the given location.
 pub fn locally[T, L : Location](
   self : ChoreoContext,
   location : L,
   computation : (Unwrapper[L]) -> T
 ) -> Located[T, L] {
-  self.logger.info(
-    "|CHOREO|LOCAL computation at \{location.name()}",
-  )
+  self.logger.info("|CHOREO|LOCAL computation at \{location.name()}")
   if location as &Location == self.location {
     let result = self.backend.run(location, computation)
     return Located::Wrap(result)
@@ -78,16 +77,14 @@ pub fn locally[T, L : Location](
   }
 }
 
-///|
+///| Communication between two locations.
 pub async fn comm[T : @json.FromJson + ToJson, From : Location, To : Location](
   self : ChoreoContext,
   from : From,
   to : To,
   value : Located[T, From]
 ) -> Located[T, To] {
-  self.logger.info(
-    "|CHOREO|COMM message from \{from.name()} to \{to.name()}",
-  )
+  self.logger.info("|CHOREO|COMM message from \{from.name()} to \{to.name()}")
   if self.location == from {
     self.backend.send!(from, to, unwrap(value))
     Located::Empty
@@ -98,15 +95,13 @@ pub async fn comm[T : @json.FromJson + ToJson, From : Location, To : Location](
   }
 }
 
-///|
+///| Make a located boolean as global condition.
 pub async fn condition[L : Location](
   self : ChoreoContext,
   loc : L,
   c : Located[Bool, L]
 ) -> Bool {
-  self.logger.info(
-    "|CHOREO|CONDITION at \{loc.name()}",
-  )
+  self.logger.info("|CHOREO|CONDITION at \{loc.name()}")
   if self.location == loc {
     let c = c.unwrap()
     self.backend.broadcast!(loc, c)

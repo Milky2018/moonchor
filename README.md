@@ -1,7 +1,74 @@
 # Moonchor: Choreographic Programming Library for MoonBit
 
+# Installation
+
+```bash
+moon add Milky2018/moonchor
+```
+
+# Examples
+
+Check [src/top_test.mbt](src/top_test.mbt)
+
+# Basic APIs
+
+```MoonBit
+trait Location: Show + Hash {
+  name(Self) -> String
+}
+
+fn make_local_backend(
+  locations : Array[&Location],
+  logger~ : &Logger = make_mute_logger()
+) -> Backend
+
+async fn run_choreo[T, L : Location](
+  backend : Backend,
+  choreography : async (ChoreoContext) -> T,
+  role : L,
+  logger? : &Logger
+) -> T 
+```
+
+For example, you can define some roles/locations by implementing the `Location` trait:
+
+```MoonBit
+struct Alice {}
+struct Bob {}
+impl Location for Alice with name(_) { "Alice" }
+impl Location for Bob with name(_) { "Bob" }
+```
+
+Define a simple choreography: Alice --msg-> Bob 
+
+```MoonBit
+async fn simple_choreo(ctx: ChoreoContext) -> Unit {
+  let alice = ctx.get_location(Alice::{ })
+  let bob = ctx.get_location(Bob::{ })
+  let msg_at_alice = ctx.locally(alice, fn (_) { "Hello" })
+  let msg_at_bob = ctx.comm(alice, bob, msg_at_alice)
+  ctx.locally(bob, fn (unwrapper) { println(unwrapper.unwrap(msg_at_bob)) })
+}
+```
+
+Then you can run the choreography:
+
+```MoonBit
+let alice = Alice::{ }
+let bob = Bob::{ }
+let backend = make_local_backend([alice, bob])
+run_choreo!(backend, simple_choreo, alice)
+// or  run_choreo!(backend, simple_choreo, bob)
+```
+
 # Todo
 
-- [ ] README
+- [x] README
 - [ ] HTTP backend
 - [x] Broadcast and choice of knowledge
+
+# Futher Readings
+
+[Introduction to Choreographies](https://www.fabriziomontesi.com/introduction-to-choreographies/)
+
+[HasChor](https://github.com/gshen42/HasChor.git)

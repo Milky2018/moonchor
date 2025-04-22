@@ -60,9 +60,7 @@ async fn recv[From : Location, To : Location, T : ToJson + @json.FromJson](
 ) -> T {
   match self {
     Local(channels, logger) => {
-      logger.info(
-        "|BACKEND|\{to.name()}.recv(\{from.name()})",
-      )
+      logger.info("|BACKEND|\{to.name()}.recv(\{from.name()})")
       let channel = channels[(from, to)].unwrap()
       let msg = channel.pop!()
       try {
@@ -75,10 +73,11 @@ async fn recv[From : Location, To : Location, T : ToJson + @json.FromJson](
   }
 }
 
-///|
+///| The unwrapper is used to unwrap located values in the computation.
+/// It is passed to the computation function as the only argument.
 struct Unwrapper[_] {}
 
-///|
+///| Unwrap a located value.
 pub fn Unwrapper::unwrap[T, L](_ : Unwrapper[L], v : Located[T, L]) -> T {
   unwrap(v)
 }
