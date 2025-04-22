@@ -3,5 +3,5 @@
 # Todo
 
 - [ ] README
-- [ ] HTTP network
+- [ ] HTTP backend
 - [x] Broadcast and choice of knowledge

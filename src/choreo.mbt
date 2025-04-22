@@ -29,17 +29,35 @@ impl Eq for &Location with op_equal(self, other) {
 ///|
 struct ChoreoContext {
   location : &Location
-  network : NetworkConfig
-  // channels : Map[(&Location, &Location), @channel.T[Json]]
+  backend : Backend
+  logger : &Logger
+}
+
+///|
+pub fn get_location[L : Location](self : ChoreoContext, loc : L) -> L {
+  if self.backend.check_location(loc) {
+    loc
+  } else {
+    abort(
+      "Bug: location " + loc.name() + " is not registered. " + CONTACT_AUTHOR,
+    )
+  }
 }
 
 ///|
 pub async fn run_choreo[T, L : Location](
-  config : NetworkConfig,
+  backend : Backend,
   choreography : async (ChoreoContext) -> T,
-  role : L
+  role : L,
+  logger? : &Logger
 ) -> T {
-  let context = ChoreoContext::{ location: role, network: config }
+  let logger = logger.or(backend.get_logger())
+  let context = ChoreoContext::{ location: role, backend, logger }
+  if not(backend.check_location(role)) {
+    abort(
+      "Bug: location " + role.name() + " is not registered. " + CONTACT_AUTHOR,
+    )
+  }
   choreography!(context)
 }
 
@@ -49,8 +67,11 @@ pub fn locally[T, L : Location](
   location : L,
   computation : (Unwrapper[L]) -> T
 ) -> Located[T, L] {
+  self.logger.info(
+    "|CHOREO|LOCAL computation at \{location.name()}",
+  )
   if location as &Location == self.location {
-    let result = self.network.run(location, computation)
+    let result = self.backend.run(location, computation)
     return Located::Wrap(result)
   } else {
     return Located::Empty
@@ -64,11 +85,14 @@ pub async fn comm[T : @json.FromJson + ToJson, From : Location, To : Location](
   to : To,
   value : Located[T, From]
 ) -> Located[T, To] {
+  self.logger.info(
+    "|CHOREO|COMM message from \{from.name()} to \{to.name()}",
+  )
   if self.location == from {
-    self.network.send!(from, to, unwrap(value))
+    self.backend.send!(from, to, unwrap(value))
     Located::Empty
   } else if self.location == to {
-    Located::Wrap(self.network.recv!(from, to))
+    Located::Wrap(self.backend.recv!(from, to))
   } else {
     return Located::Empty
   }
@@ -80,27 +104,15 @@ pub async fn condition[L : Location](
   loc : L,
   c : Located[Bool, L]
 ) -> Bool {
+  self.logger.info(
+    "|CHOREO|CONDITION at \{loc.name()}",
+  )
   if self.location == loc {
     let c = c.unwrap()
-    self.network.broadcast!(loc, c)
+    self.backend.broadcast!(loc, c)
     c
-    // self.channels.iter2()
-    // |> into_aiter2
-    // |> AIter2::each!(async fn(from_to, channel) {
-    //   if from_to.0 == loc {
-    //     channel.push!(c.to_json())
-    //   }
-    // })
-    // c
   } else {
-    // let channel = self.channels[(loc, self.location)].unwrap()
-    // let value = try {
-    //   channel.pop!() |> @json.from_json!()
-    // } catch {
-    //   _ => abort("Bug: deserialzing JSON failed. " + CONTACT_AUTHOR)
-    // }
-    // value
-    let value = self.network.recv!(loc, self.location)
-    value 
+    let value = self.backend.recv!(loc, self.location)
+    value
   }
 }

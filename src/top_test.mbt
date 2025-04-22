@@ -29,14 +29,15 @@ fn get_budget() -> Int {
   100
 }
 
+///|
 fn get_delivery_date(_title : String) -> String {
   "2025-10-01"
 }
 
 ///|
 async fn bookshop_v1(ctx : ChoreoContext) -> Unit {
-  let buyer = Buyer::{  }
-  let seller = Seller::{  }
+  let buyer = ctx.get_location(Buyer::{  })
+  let seller = ctx.get_location(Seller::{  })
   let title_at_buyer = ctx.locally(buyer, fn(_unwrapper) { get_title() })
   let title_at_seller = ctx.comm!(buyer, seller, title_at_buyer)
   let price_at_seller = ctx.locally(seller, fn(unwrapper) {
@@ -68,8 +69,8 @@ async fn bookshop_v1(ctx : ChoreoContext) -> Unit {
 
 ///|
 async fn bookshop_v2(ctx : ChoreoContext) -> Unit {
-  let buyer = Buyer::{  }
-  let seller = Seller::{  }
+  let buyer = ctx.get_location(Buyer::{  })
+  let seller = ctx.get_location(Seller::{  })
   let title_at_buyer = ctx.locally(buyer, fn(_unwrapper) { get_title() })
   let title_at_seller = ctx.comm!(buyer, seller, title_at_buyer)
   let price_at_seller = ctx.locally(seller, fn(unwrapper) {
@@ -107,26 +108,32 @@ test "bookshop 1.0" {
   //   I will not sell the book
   let buyer = Buyer::{  }
   let seller = Seller::{  }
-  let config = make_local_config([buyer, seller])
+  let backend = make_local_backend([buyer, seller])
   let _buyer_handler = @promise.spawn(async fn(_) {
-    run_choreo!(config, bookshop_v1, buyer)
+    run_choreo!(backend, bookshop_v1, buyer)
   })
   let _seller_handler = @promise.spawn(async fn(_) {
-    run_choreo!(config, bookshop_v1, seller)
+    run_choreo!(backend, bookshop_v1, seller)
   })
+
 }
 
+///|
 test "bookshop 2.0" {
   // Should print: 
   //   I will sell the book
   //   The book will be delivered on 2025-10-01
   let buyer = Buyer::{  }
   let seller = Seller::{  }
-  let config = make_local_config([buyer, seller])
+  let backend = make_local_backend(
+    [buyer, seller],
+    // logger=make_console_logger(),
+  )
   let _buyer_handler = @promise.spawn(async fn(_) {
-    run_choreo!(config, bookshop_v2, buyer)
+    run_choreo!(backend, bookshop_v2, buyer)
   })
   let _seller_handler = @promise.spawn(async fn(_) {
-    run_choreo!(config, bookshop_v2, seller)
+    run_choreo!(backend, bookshop_v2, seller)
   })
+
 }
