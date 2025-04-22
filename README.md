@@ -4,4 +4,4 @@
 
 - [ ] README
 - [ ] HTTP network
-- [ ] Broadcast and choice of knowledge
+- [x] Broadcast and choice of knowledge
