@@ -33,17 +33,6 @@ struct ChoreoContext {
   logger : &Logger
 }
 
-///| Secure location instantiation. If the location is not registered, abort.
-pub fn get_location[L : Location](self : ChoreoContext, loc : L) -> L {
-  if self.backend.check_location(loc) {
-    loc
-  } else {
-    abort(
-      "Bug: location " + loc.name() + " is not registered. " + CONTACT_AUTHOR,
-    )
-  }
-}
-
 ///| Run a choreography in the given location and backend.
 /// Default logger is the backend logger.
 pub async fn run_choreo[T, L : Location](
