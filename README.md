@@ -67,7 +67,7 @@ run_choreo!(backend, simple_choreo, alice)
 - [ ] HTTP backend
 - [x] Broadcast and choice of knowledge
 
-# Futher Readings
+# Further Readings
 
 [Introduction to Choreographies](https://www.fabriziomontesi.com/introduction-to-choreographies/)
 
