@@ -12,7 +12,7 @@ Check [src/top_test.mbt](src/top_test.mbt)
 
 # Basic APIs
 
-```MoonBit
+```moonbit
 trait Location: Show + Hash {
   name(Self) -> String
 }
@@ -32,7 +32,7 @@ async fn run_choreo[T, L : Location](
 
 For example, you can define some roles/locations by implementing the `Location` trait:
 
-```MoonBit
+```moonbit
 struct Alice {}
 struct Bob {}
 impl Location for Alice with name(_) { "Alice" }
@@ -41,7 +41,7 @@ impl Location for Bob with name(_) { "Bob" }
 
 Define a simple choreography: Alice --msg-> Bob 
 
-```MoonBit
+```moonbit
 async fn simple_choreo(ctx: ChoreoContext) -> Unit {
   let alice = ctx.get_location(Alice::{ })
   let bob = ctx.get_location(Bob::{ })
@@ -53,7 +53,7 @@ async fn simple_choreo(ctx: ChoreoContext) -> Unit {
 
 Then you can run the choreography:
 
-```MoonBit
+```moonbit
 let alice = Alice::{ }
 let bob = Bob::{ }
 let backend = make_local_backend([alice, bob])
