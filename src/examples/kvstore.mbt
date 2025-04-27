@@ -103,7 +103,7 @@ async fn kvstore_v1(ctx : @moonchor.ChoreoContext) -> Unit {
 }
 
 ///|
-test "KV Store v1" {
+test "kvstore 1.0" {
   let backend = @moonchor.make_local_backend([server, client])
   @promise.spawn(async fn(_) {
     @moonchor.run_choreo!(backend, kvstore_v1, server)

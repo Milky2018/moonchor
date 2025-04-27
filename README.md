@@ -37,14 +37,14 @@ struct Alice {}
 struct Bob {}
 impl Location for Alice with name(_) { "Alice" }
 impl Location for Bob with name(_) { "Bob" }
+let alice : Alice = Alice::{ }
+let bob : Bob = Bob::{ }
 ```
 
 Define a simple choreography: Alice --msg-> Bob 
 
 ```moonbit
 async fn simple_choreo(ctx: ChoreoContext) -> Unit {
-  let alice = ctx.get_location(Alice::{ })
-  let bob = ctx.get_location(Bob::{ })
   let msg_at_alice = ctx.locally(alice, fn (_) { "Hello" })
   let msg_at_bob = ctx.comm(alice, bob, msg_at_alice)
   ctx.locally(bob, fn (unwrapper) { println(unwrapper.unwrap(msg_at_bob)) })
@@ -54,8 +54,6 @@ async fn simple_choreo(ctx: ChoreoContext) -> Unit {
 Then you can run the choreography:
 
 ```moonbit
-let alice = Alice::{ }
-let bob = Bob::{ }
 let backend = make_local_backend([alice, bob])
 run_choreo!(backend, simple_choreo, alice)
 // or  run_choreo!(backend, simple_choreo, bob)
