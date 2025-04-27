@@ -6,7 +6,8 @@ impl @moonchor.Location for Buyer with name(_) {
   "buyer"
 }
 
-let buyer: Buyer = Buyer::{}
+///|
+let buyer : Buyer = Buyer::{  }
 
 ///|
 priv struct Seller {} derive(Eq, Show, Hash)
@@ -16,7 +17,8 @@ impl @moonchor.Location for Seller with name(_) {
   "seller"
 }
 
-let seller: Seller = Seller::{}
+///|
+let seller : Seller = Seller::{  }
 
 ///|
 fn get_title() -> String {

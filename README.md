@@ -8,7 +8,7 @@ moon add Milky2018/moonchor
 
 # Examples
 
-Check [src/top_test.mbt](src/top_test.mbt)
+Check [examples](src/examples/)
 
 # Basic APIs
 

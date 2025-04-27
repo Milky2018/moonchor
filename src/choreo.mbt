@@ -100,3 +100,12 @@ pub async fn condition[L : Location](
     value
   }
 }
+
+///| Run a sub choreography in the given location and backend.
+pub async fn ChoreoContext::run_choreo[T, L : Location](
+  self : ChoreoContext,
+  choreography : async (ChoreoContext) -> T,
+  role : L
+) -> T {
+  run_choreo!(self.backend, choreography, role, logger=self.logger)
+}
