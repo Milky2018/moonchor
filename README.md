@@ -24,7 +24,7 @@ fn make_local_backend(
 
 async fn run_choreo[T, L : Location](
   backend : Backend,
-  choreography : async (ChoreoContext) -> T,
+  choreography : (ChoreoContext) -> T!Async,
   role : L,
   logger? : &Logger
 ) -> T 

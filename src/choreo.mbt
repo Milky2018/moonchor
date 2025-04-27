@@ -37,7 +37,7 @@ struct ChoreoContext {
 /// Default logger is the backend logger.
 pub async fn run_choreo[T, L : Location](
   backend : Backend,
-  choreography : async (ChoreoContext) -> T,
+  choreography : (ChoreoContext) -> T!Async,
   role : L,
   logger? : &Logger
 ) -> T {
@@ -104,7 +104,7 @@ pub async fn condition[L : Location](
 ///| Run a sub choreography in the given location and backend.
 pub async fn ChoreoContext::run_choreo[T, L : Location](
   self : ChoreoContext,
-  choreography : async (ChoreoContext) -> T,
+  choreography : (ChoreoContext) -> T!Async,
   role : L
 ) -> T {
   run_choreo!(self.backend, choreography, role, logger=self.logger)
