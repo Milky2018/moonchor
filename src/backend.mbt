@@ -1,21 +1,21 @@
 ///|
 enum Backend {
-  Local(Map[(&Location, &Location), @channel.T[Json]], &Logger)
+  Local(Array[&Location], Map[(&Location, &Location), @channel.T[Json]], &Logger)
   // HttpConfig
 }
 
 ///|
 pub fn get_logger(self : Backend) -> &Logger {
   match self {
-    Local(_, logger) => logger
+    Local(_, _, logger) => logger
   }
 }
 
 ///|
 pub fn check_location(self : Backend, loc : &Location) -> Bool {
   match self {
-    Local(channels, _) =>
-      channels.keys().any(fn(from_to) { from_to.0 == loc || from_to.1 == loc })
+    Local(locations, _, _) =>
+      locations.contains(loc)
   }
 }
 
@@ -33,7 +33,7 @@ pub fn make_local_backend(
       }
     }
   }
-  Local(channels, logger)
+  Local(locations, channels, logger)
 }
 
 ///|
@@ -44,7 +44,7 @@ async fn send[From : Location, To : Location, T : ToJson + @json.FromJson](
   msg : T
 ) -> Unit {
   match self {
-    Local(channels, logger) => {
+    Local(_locations, channels, logger) => {
       logger.info("|BACKEND|\{from.name()}.send(msg, \{to.name()})")
       let channel = channels[(from, to)].unwrap()
       channel.push!(msg.to_json())
@@ -59,7 +59,7 @@ async fn recv[From : Location, To : Location, T : ToJson + @json.FromJson](
   to : To
 ) -> T {
   match self {
-    Local(channels, logger) => {
+    Local(_locations, channels, logger) => {
       logger.info("|BACKEND|\{to.name()}.recv(\{from.name()})")
       let channel = channels[(from, to)].unwrap()
       let msg = channel.pop!()
@@ -101,14 +101,13 @@ async fn broadcast[From : Location, T : ToJson + @json.FromJson](
   msg : T
 ) -> Unit {
   match self {
-    Local(channels, logger) => {
+    Local(locations, channels, logger) => {
       logger.info("|BACKEND|\{from.name()}.broadcast(msg)")
-      channels.iter2()
-      |> async_each2!(async fn(from_to, channel) {
-        if from_to.0 == from {
-          channel.push!(msg.to_json())
-        }
-      })
+      let targets = locations.filter(fn(loc) { loc != from })
+      for to in targets {
+        let channel = channels[(from, to)].unwrap()
+        channel.push!(msg.to_json())
+      }
     }
   }
 }
