@@ -1,0 +1,63 @@
+package "Milky2018/moonchor"
+
+import(
+  "moonbitlang/core/json"
+)
+
+// Values
+fn check_location(Backend, &Location) -> Bool
+
+fn comm[T : @json.FromJson + ToJson, From : Location, To : Location](ChoreoContext, From, To, Located[T, From]) -> Located[T, To]
+
+fn condition[L : Location](ChoreoContext, L, Located[Bool, L]) -> Bool
+
+fn get_logger(Backend) -> &Logger
+
+fn locally[T, L : Location](ChoreoContext, L, (Unwrapper[L]) -> T) -> Located[T, L]
+
+fn make_console_logger() -> ConsoleLogger
+
+fn make_local_backend(Array[&Location], logger~ : &Logger = ..) -> Backend
+
+fn make_mute_logger() -> MuteLogger
+
+fn run_choreo[T, L : Location](Backend, (ChoreoContext) -> T, L, logger? : &Logger) -> T
+
+// Types and methods
+type Backend
+impl Backend {
+  check_location(Self, &Location) -> Bool
+  get_logger(Self) -> &Logger
+}
+
+type ChoreoContext
+impl ChoreoContext {
+  comm[T : @json.FromJson + ToJson, From : Location, To : Location](Self, From, To, Located[T, From]) -> Located[T, To]
+  condition[L : Location](Self, L, Located[Bool, L]) -> Bool
+  locally[T, L : Location](Self, L, (Unwrapper[L]) -> T) -> Located[T, L]
+}
+
+type ConsoleLogger
+impl Logger for ConsoleLogger
+
+type Located[T, _]
+
+type MuteLogger
+impl Logger for MuteLogger
+
+type Unwrapper[_]
+impl Unwrapper {
+  unwrap[T, L](Self[L], Located[T, L]) -> T
+}
+
+// Type aliases
+
+// Traits
+pub(open) trait Location : Show + Hash {
+  name(Self) -> String
+}
+
+pub trait Logger {
+  info(Self, String) -> Unit
+}
+
