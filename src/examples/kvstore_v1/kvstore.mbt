@@ -51,9 +51,9 @@ async fn access_server(
   request : @moonchor.Located[Request, Client],
   state_at_server : @moonchor.Located[ServerState, Server]
 ) -> @moonchor.Located[Response, Client] {
-  let request_at_client = ctx.comm!(client, server, request)
+  let request_at_server = ctx.comm!(client, server, request)
   let response = ctx.locally(server, fn(unwrapper) {
-    let request = unwrapper.unwrap(request_at_client)
+    let request = unwrapper.unwrap(request_at_server)
     let state = unwrapper.unwrap(state_at_server)
     handle_request(state, request)
   })
@@ -82,7 +82,7 @@ async fn get(
 }
 
 ///|
-async fn kvstore_v1(ctx : @moonchor.ChoreoContext) -> Unit {
+async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
   let state_at_server = ctx.locally(server, fn(_unwrapper) {
     ServerState::{ db: {} }
   })
@@ -106,11 +106,11 @@ async fn kvstore_v1(ctx : @moonchor.ChoreoContext) -> Unit {
 test "kvstore 1.0" {
   let backend = @moonchor.make_local_backend([server, client])
   @promise.spawn(async fn(_) {
-    @moonchor.run_choreo!(backend, kvstore_v1, server)
+    @moonchor.run_choreo!(backend, kvstore, server)
   })
   |> ignore
   @promise.spawn(async fn(_) {
-    @moonchor.run_choreo!(backend, kvstore_v1, client)
+    @moonchor.run_choreo!(backend, kvstore, client)
   })
   |> ignore
 }
