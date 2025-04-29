@@ -40,7 +40,7 @@ priv struct ServerState {
 priv enum Request {
   Get(String)
   Put(String, Int)
-} derive(ToJson, FromJson)
+} derive(ToJson, FromJson, Show)
 
 ///|
 typealias Response = Int?
@@ -57,13 +57,12 @@ fn handle_request(state : ServerState, request : Request) -> Response {
 }
 
 ///|
-async fn access_server(
+async fn replicate(
   ctx : @moonchor.ChoreoContext,
-  request : @moonchor.Located[Request, Client],
+  request_at_server : @moonchor.Located[Request, Server],
   state_at_server : @moonchor.Located[ServerState, Server],
   state_at_backup : @moonchor.Located[ServerState, Backup]
-) -> @moonchor.Located[Response, Client] {
-  let request_at_server = ctx.comm!(client, server, request)
+) -> @moonchor.Located[Response, Server] {
   let request_is_put = ctx.locally(server, fn(unwrapper) {
     let request = unwrapper.unwrap(request_at_server)
     request is Put(_, _)
@@ -77,11 +76,24 @@ async fn access_server(
     })
     ctx.comm!(backup, server, response_at_backup) |> ignore
   }
-  let response = ctx.locally(server, fn(unwrapper) {
+  ctx.locally(server, fn(unwrapper) {
     let request = unwrapper.unwrap(request_at_server)
     let state = unwrapper.unwrap(state_at_server)
     handle_request(state, request)
   })
+}
+
+///|
+async fn access_server(
+  ctx : @moonchor.ChoreoContext,
+  request : @moonchor.Located[Request, Client],
+  state_at_server : @moonchor.Located[ServerState, Server],
+  state_at_backup : @moonchor.Located[ServerState, Backup]
+) -> @moonchor.Located[Response, Client] {
+  let request_at_server = ctx.comm!(client, server, request)
+  let response = replicate!(
+    ctx, request_at_server, state_at_server, state_at_backup,
+  )
   ctx.comm!(server, client, response)
 }
 
@@ -137,7 +149,7 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
 }
 
 ///|
-test "kvstore 2.0" {
+test "kvstore 3.0" {
   let backend = @moonchor.make_local_backend([server, client, backup])
   @promise.spawn(async fn(_) { @moonchor.run_choreo!(backend, kvstore, server) })
   |> ignore
