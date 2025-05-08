@@ -2,12 +2,15 @@
   "name": "Milky2018/moonchor",
   "version": "0.7.5",
   "deps": {
-    "peter-jerry-ye/async": "0.1.4"
+    "peter-jerry-ye/async": "0.1.6"
   },
   "readme": "README.md",
   "repository": "https://github.com/Milky2018/moonchor.git",
   "license": "Apache-2.0",
-  "keywords": ["Choreographic", "MoonBit"],
+  "keywords": [
+    "Choreographic",
+    "MoonBit"
+  ],
   "description": "Choreographic programming library for MoonBit.",
   "source": "src"
 }

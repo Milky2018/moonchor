@@ -1,6 +1,10 @@
 ///|
 enum Backend {
-  Local(Array[&Location], Map[(&Location, &Location), @channel.T[Json]], &Logger)
+  Local(
+    Array[&Location],
+    Map[(&Location, &Location), @channel.T[Json]],
+    &Logger
+  )
   // HttpConfig
 }
 
@@ -14,8 +18,7 @@ pub fn get_logger(self : Backend) -> &Logger {
 ///|
 pub fn check_location(self : Backend, loc : &Location) -> Bool {
   match self {
-    Local(locations, _, _) =>
-      locations.contains(loc)
+    Local(locations, _, _) => locations.contains(loc)
   }
 }
 

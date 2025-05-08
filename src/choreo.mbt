@@ -1,14 +1,14 @@
 ///| Represents a value located at a specific location.
 enum Located[T, _] {
-  Wrap(T)
-  Empty
+  Present(T)
+  Absent
 }
 
 ///| 
 fn unwrap[T, L](self : Located[T, L]) -> T {
   match self {
-    Located::Wrap(t) => t
-    Located::Empty =>
+    Located::Present(t) => t
+    Located::Absent =>
       abort(
         "Bug: unwrapping an empty value. This should never happen. " +
         CONTACT_AUTHOR,
@@ -60,9 +60,9 @@ pub fn locally[T, L : Location](
   self.logger.info("|CHOREO|LOCAL computation at \{location.name()}")
   if location as &Location == self.location {
     let result = self.backend.run(location, computation)
-    return Located::Wrap(result)
+    return Located::Present(result)
   } else {
-    return Located::Empty
+    return Located::Absent
   }
 }
 
@@ -76,11 +76,11 @@ pub async fn comm[T : @json.FromJson + ToJson, From : Location, To : Location](
   self.logger.info("|CHOREO|COMM message from \{from.name()} to \{to.name()}")
   if self.location == from {
     self.backend.send!(from, to, unwrap(value))
-    Located::Empty
+    Located::Absent
   } else if self.location == to {
-    Located::Wrap(self.backend.recv!(from, to))
+    Located::Present(self.backend.recv!(from, to))
   } else {
-    return Located::Empty
+    return Located::Absent
   }
 }
 

@@ -185,15 +185,19 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
 ///|
 test "kvstore 4.0" {
   let backend = @moonchor.make_local_backend([server, client, backup1, backup2])
-  @promise.spawn(async fn(_) { @moonchor.run_choreo!(backend, kvstore, server) })
+  @moonchor.run_async(async fn() {
+    @moonchor.run_choreo!(backend, kvstore, server)
+  })
   |> ignore
-  @promise.spawn(async fn(_) { @moonchor.run_choreo!(backend, kvstore, client) })
+  @moonchor.run_async(async fn() {
+    @moonchor.run_choreo!(backend, kvstore, client)
+  })
   |> ignore
-  @promise.spawn(async fn(_) {
+  @moonchor.run_async(async fn() {
     @moonchor.run_choreo!(backend, kvstore, backup1)
   })
   |> ignore
-  @promise.spawn(async fn(_) {
+  @moonchor.run_async(async fn() {
     @moonchor.run_choreo!(backend, kvstore, backup2)
   })
   |> ignore

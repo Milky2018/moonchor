@@ -109,10 +109,10 @@ test "bookshop 1.0" {
   //   I will not buy the book
   //   I will not sell the book
   let backend = @moonchor.make_local_backend([buyer, seller])
-  let _buyer_handler = @promise.spawn(async fn(_) {
+  let _buyer_handler = @moonchor.run_async(async fn() {
     @moonchor.run_choreo!(backend, bookshop_v1, buyer)
   })
-  let _seller_handler = @promise.spawn(async fn(_) {
+  let _seller_handler = @moonchor.run_async(async fn() {
     @moonchor.run_choreo!(backend, bookshop_v1, seller)
   })
 
@@ -126,10 +126,10 @@ test "bookshop 2.0" {
   let backend = @moonchor.make_local_backend([buyer, seller],
     // logger=make_console_logger(),
   )
-  let _buyer_handler = @promise.spawn(async fn(_) {
+  let _buyer_handler = @moonchor.run_async(async fn() {
     @moonchor.run_choreo!(backend, bookshop_v2, buyer)
   })
-  let _seller_handler = @promise.spawn(async fn(_) {
+  let _seller_handler = @moonchor.run_async(async fn() {
     @moonchor.run_choreo!(backend, bookshop_v2, seller)
   })
 

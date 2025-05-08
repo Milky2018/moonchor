@@ -1,6 +1,5 @@
 {
     "import": [
-        "Milky2018/moonchor",
-        "peter-jerry-ye/async/promise"
+        "Milky2018/moonchor"
     ]
 }
