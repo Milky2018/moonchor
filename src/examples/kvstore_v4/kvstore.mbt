@@ -176,7 +176,7 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
       println("The server is working correctly")
       test_pass.val = true
     } else {
-      abort("The server is not working correctly")
+      @moonchor.alert("The server is not working correctly")
     }
   })
   |> ignore

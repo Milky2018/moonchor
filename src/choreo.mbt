@@ -9,7 +9,7 @@ fn unwrap[T, L](self : Located[T, L]) -> T {
   match self {
     Located::Present(t) => t
     Located::Absent =>
-      abort(
+      alert(
         "Bug: unwrapping an empty value. This should never happen. " +
         CONTACT_AUTHOR,
       )
@@ -20,6 +20,9 @@ fn unwrap[T, L](self : Located[T, L]) -> T {
 pub(open) trait Location: Show + Hash {
   name(Self) -> String
 }
+
+///|
+pub(open) trait PolyLocation: Location + ToJson + @json.FromJson {}
 
 ///|
 impl Eq for &Location with op_equal(self, other) {
@@ -44,7 +47,7 @@ pub async fn run_choreo[T, L : Location](
   let logger = logger.or(backend.get_logger())
   let context = ChoreoContext::{ location: role, backend, logger }
   if not(backend.check_location(role)) {
-    abort(
+    alert(
       "Bug: location " + role.name() + " is not registered. " + CONTACT_AUTHOR,
     )
   }
@@ -74,6 +77,9 @@ pub async fn comm[T : @json.FromJson + ToJson, From : Location, To : Location](
   value : Located[T, From]
 ) -> Located[T, To] {
   self.logger.info("|CHOREO|COMM message from \{from.name()} to \{to.name()}")
+  if from as &Location == to {
+    alert("Sending a message to the same location. ")
+  }
   if self.location == from {
     self.backend.send!(from, to, unwrap(value))
     Located::Absent
@@ -95,6 +101,23 @@ pub async fn condition[L : Location](
     let c = c.unwrap()
     self.backend.broadcast!(loc, c)
     c
+  } else {
+    let value = self.backend.recv!(loc, self.location)
+    value
+  }
+}
+
+///| Make a located location as global accessible.
+pub async fn lift_location[T : PolyLocation, L : Location](
+  self : ChoreoContext,
+  loc : L,
+  value : Located[T, L]
+) -> T {
+  self.logger.info("|CHOREO|LIFTING at \{loc.name()}")
+  if self.location == loc {
+    let value = value.unwrap()
+    self.backend.broadcast!(loc, value)
+    value
   } else {
     let value = self.backend.recv!(loc, self.location)
     value

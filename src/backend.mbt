@@ -70,7 +70,7 @@ async fn recv[From : Location, To : Location, T : ToJson + @json.FromJson](
         let value = @json.from_json!(msg)
         return value
       } catch {
-        _ => abort("Bug: deserialzing JSON failed. " + CONTACT_AUTHOR)
+        _ => alert("Bug: deserialzing JSON failed. " + CONTACT_AUTHOR)
       }
     }
   }

@@ -1,6 +1,6 @@
 {
   "name": "Milky2018/moonchor",
-  "version": "0.7.5",
+  "version": "0.9.0",
   "deps": {
     "peter-jerry-ye/async": "0.1.6"
   },
