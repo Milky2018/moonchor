@@ -35,7 +35,7 @@ async fn handle_task[In : @moonchor.Message, Out : @moonchor.Message](
   let worker_at_manager = ctx.locally(manager, fn(unwrapper) {
     unwrapper.unwrap(state).get_worker()
   })
-  let worker = ctx.broadcast!(manager, worker_at_manager)
+  let worker = ctx.announce!(manager, worker_at_manager)
   let arg_at_worker = ctx.comm!(manager, worker, arg)
   let result_at_worker = ctx.locally(worker, fn(unwrapper) {
     let arg = unwrapper.unwrap(arg_at_worker)

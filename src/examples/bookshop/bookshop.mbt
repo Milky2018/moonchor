@@ -84,7 +84,7 @@ async fn bookshop_v2(ctx : @moonchor.ChoreoContext) -> Unit {
     let price = unwrapper.unwrap(price_at_buyer)
     price < get_budget()
   })
-  if ctx.broadcast!(buyer, decision_at_buyer) {
+  if ctx.announce!(buyer, decision_at_buyer) {
     let delivery_date_at_seller = ctx.locally(seller, fn(unwrapper) {
       println("I will sell the book")
       get_delivery_date(unwrapper.unwrap(title_at_seller))

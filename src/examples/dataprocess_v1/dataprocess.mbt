@@ -52,7 +52,7 @@ async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
   let mut data_is_empty = ctx.locally(manager, fn(unwrapper) {
     unwrapper.unwrap(data_at_manager).is_empty()
   })
-  while not(ctx.broadcast!(manager, data_is_empty)) {
+  while not(ctx.announce!(manager, data_is_empty)) {
     let data_piece_at_manager = ctx.locally(manager, fn(unwrapper) {
       unwrapper.unwrap(data_at_manager).pop().unwrap()
     })
@@ -61,7 +61,7 @@ async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
       let idx = counter % workers.length()
       workers[idx]
     })
-    let worker = ctx.broadcast!(manager, worker_at_manager)
+    let worker = ctx.announce!(manager, worker_at_manager)
     counter_at_manager = ctx.locally(manager, fn(unwrapper) {
       let counter = unwrapper.unwrap(counter_at_manager)
       counter + 1

@@ -1,33 +1,3 @@
-///| Represents a value located at a specific location.
-enum Located[T, _] {
-  Present(T)
-  Absent
-}
-
-///| 
-fn unwrap[T, L](self : Located[T, L]) -> T {
-  match self {
-    Located::Present(t) => t
-    Located::Absent =>
-      alert(
-        "Bug: unwrapping an empty value. This should never happen. " +
-        CONTACT_AUTHOR,
-      )
-  }
-}
-
-///|
-pub(open) trait Location: Show + Hash {
-  name(Self) -> String
-}
-
-///|
-pub(open) trait PolyLocation: Location + Message {}
-
-///|
-impl Eq for &Location with op_equal(self, other) {
-  self.name() == other.name()
-}
 
 ///|
 struct ChoreoContext {
@@ -91,7 +61,7 @@ pub async fn comm[T : Message, From : Location, To : Location](
 }
 
 ///| Broadcast a message to all locations.
-pub async fn ChoreoContext::broadcast[T : Message, L : Location](
+pub async fn ChoreoContext::announce[T : Message, L : Location](
   self : ChoreoContext,
   loc : L,
   value : Located[T, L]

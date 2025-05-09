@@ -29,7 +29,7 @@ async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
   let mut data_is_empty = ctx.locally(client, fn(unwrapper) {
     unwrapper.unwrap(client_state).inputs.is_empty()
   })
-  while not(ctx.broadcast!(client, data_is_empty)) {
+  while not(ctx.announce!(client, data_is_empty)) {
     let data_piece_at_client = ctx.locally(client, fn(unwrapper) {
       unwrapper.unwrap(client_state).inputs.pop().unwrap()
     })
@@ -63,7 +63,7 @@ fn start_location_sync(
 }
 
 ///|
-test "data_process 2.0" {
+test "data_process 3.0" {
   // Should print:
   //   Processing data at worker1
   //   Processing data at worker2
