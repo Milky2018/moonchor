@@ -35,7 +35,7 @@ let worker4 : Worker = Worker::{ id: "worker4" }
 let workers : Array[Worker] = [worker1, worker2, worker3, worker4]
 
 ///|
-struct ManagerState {
+priv struct ManagerState {
   mut counter : Int
   results : Array[Int]
 }
