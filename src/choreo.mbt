@@ -90,30 +90,13 @@ pub async fn comm[T : @json.FromJson + ToJson, From : Location, To : Location](
   }
 }
 
-///| Make a located boolean as global condition.
-pub async fn condition[L : Location](
-  self : ChoreoContext,
-  loc : L,
-  c : Located[Bool, L]
-) -> Bool {
-  self.logger.info("|CHOREO|CONDITION at \{loc.name()}")
-  if self.location == loc {
-    let c = c.unwrap()
-    self.backend.broadcast!(loc, c)
-    c
-  } else {
-    let value = self.backend.recv!(loc, self.location)
-    value
-  }
-}
-
-///| Make a located location as global accessible.
-pub async fn lift_location[T : PolyLocation, L : Location](
+///| Broadcast a message to all locations.
+pub async fn ChoreoContext::broadcast[T : @json.FromJson + ToJson, L : Location](
   self : ChoreoContext,
   loc : L,
   value : Located[T, L]
 ) -> T {
-  self.logger.info("|CHOREO|LIFTING at \{loc.name()}")
+  self.logger.info("|CHOREO|BROADCAST at \{loc.name()}")
   if self.location == loc {
     let value = value.unwrap()
     self.backend.broadcast!(loc, value)

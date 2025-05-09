@@ -98,7 +98,7 @@ fn Backend::run[L : Location, T](
 }
 
 ///|
-async fn broadcast[From : Location, T : ToJson + @json.FromJson](
+async fn Backend::broadcast[From : Location, T : ToJson + @json.FromJson](
   self : Backend,
   from : From,
   msg : T

@@ -20,8 +20,7 @@ async fn send_msg(ctx : @moonchor.ChoreoContext) -> Unit {
   let msg_at_worker2 = ctx.comm!(worker1, worker2, msg_at_worker1)
   ctx.locally(worker2, fn(unwrapper) {
     let msg = unwrapper.unwrap(msg_at_worker2)
-    let msg_absent = unwrapper.unwrap(msg_at_worker1)
-    println("Received message: \{msg} \{msg_absent}")
+    println("Received message: \{msg}")
   })
   |> ignore
 }

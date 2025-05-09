@@ -68,7 +68,7 @@ async fn access_server(
     let request = unwrapper.unwrap(request_at_server)
     request is Put(_, _)
   })
-  if ctx.condition!(server, request_is_put) {
+  if ctx.broadcast!(server, request_is_put) {
     let request_at_backup = ctx.comm!(server, backup, request_at_server)
     let response_at_backup = ctx.locally(backup, fn(unwrapper) {
       let request = unwrapper.unwrap(request_at_backup)

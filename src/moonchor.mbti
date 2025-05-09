@@ -5,11 +5,11 @@ import(
 )
 
 // Values
+fn alert[Any](String) -> Any
+
 fn check_location(Backend, &Location) -> Bool
 
 fn comm[T : @json.FromJson + ToJson, From : Location, To : Location](ChoreoContext, From, To, Located[T, From]) -> Located[T, To]
-
-fn condition[L : Location](ChoreoContext, L, Located[Bool, L]) -> Bool
 
 fn get_logger(Backend) -> &Logger
 
@@ -21,7 +21,13 @@ fn make_local_backend(Array[&Location], logger~ : &Logger = ..) -> Backend
 
 fn make_mute_logger() -> MuteLogger
 
+fn run_async(() -> Unit) -> Unit
+
 fn run_choreo[T, L : Location](Backend, (ChoreoContext) -> T, L, logger? : &Logger) -> T
+
+fn suspend[A](((A) -> Unit) -> Unit) -> A
+
+fn suspend_err[A](((A) -> Unit, (Error) -> Unit) -> Unit) -> A!
 
 // Types and methods
 type Backend
@@ -32,8 +38,8 @@ impl Backend {
 
 type ChoreoContext
 impl ChoreoContext {
+  broadcast[T : @json.FromJson + ToJson, L : Location](Self, L, Located[T, L]) -> T
   comm[T : @json.FromJson + ToJson, From : Location, To : Location](Self, From, To, Located[T, From]) -> Located[T, To]
-  condition[L : Location](Self, L, Located[Bool, L]) -> Bool
   locally[T, L : Location](Self, L, (Unwrapper[L]) -> T) -> Located[T, L]
 }
 
@@ -59,5 +65,8 @@ pub(open) trait Location : Show + Hash {
 
 pub trait Logger {
   info(Self, String) -> Unit
+}
+
+pub(open) trait PolyLocation : Location + ToJson + @json.FromJson {
 }
 
