@@ -25,7 +25,7 @@ fn ManagerState::get_worker(self : ManagerState) -> Worker {
 }
 
 ///|
-async fn handle_task[In : @json.FromJson + ToJson, Out : @json.FromJson + ToJson](
+async fn handle_task[In : @moonchor.Message, Out : @moonchor.Message](
   ctx : @moonchor.ChoreoContext,
   manager : Manager,
   state : @moonchor.Located[ManagerState, Manager],

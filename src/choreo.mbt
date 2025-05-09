@@ -22,7 +22,7 @@ pub(open) trait Location: Show + Hash {
 }
 
 ///|
-pub(open) trait PolyLocation: Location + ToJson + @json.FromJson {}
+pub(open) trait PolyLocation: Location + Message {}
 
 ///|
 impl Eq for &Location with op_equal(self, other) {
@@ -70,7 +70,7 @@ pub fn locally[T, L : Location](
 }
 
 ///| Communication between two locations.
-pub async fn comm[T : @json.FromJson + ToJson, From : Location, To : Location](
+pub async fn comm[T : Message, From : Location, To : Location](
   self : ChoreoContext,
   from : From,
   to : To,
@@ -91,7 +91,7 @@ pub async fn comm[T : @json.FromJson + ToJson, From : Location, To : Location](
 }
 
 ///| Broadcast a message to all locations.
-pub async fn ChoreoContext::broadcast[T : @json.FromJson + ToJson, L : Location](
+pub async fn ChoreoContext::broadcast[T : Message, L : Location](
   self : ChoreoContext,
   loc : L,
   value : Located[T, L]

@@ -17,7 +17,7 @@ fn Executor::new(
 }
 
 ///|
-async fn Executor::execute[In : @json.FromJson + ToJson, Out : @json.FromJson + ToJson](
+async fn Executor::execute[In : @moonchor.Message, Out : @moonchor.Message](
   self : Executor,
   task : (In) -> Out,
   arg : @moonchor.Located[In, Client]

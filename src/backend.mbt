@@ -40,7 +40,7 @@ pub fn make_local_backend(
 }
 
 ///|
-async fn send[From : Location, To : Location, T : ToJson + @json.FromJson](
+async fn send[From : Location, To : Location, T : Message](
   self : Backend,
   from : From,
   to : To,
@@ -56,7 +56,7 @@ async fn send[From : Location, To : Location, T : ToJson + @json.FromJson](
 }
 
 ///|
-async fn recv[From : Location, To : Location, T : ToJson + @json.FromJson](
+async fn recv[From : Location, To : Location, T : Message](
   self : Backend,
   from : From,
   to : To
@@ -98,7 +98,7 @@ fn Backend::run[L : Location, T](
 }
 
 ///|
-async fn Backend::broadcast[From : Location, T : ToJson + @json.FromJson](
+async fn Backend::broadcast[From : Location, T : Message](
   self : Backend,
   from : From,
   msg : T

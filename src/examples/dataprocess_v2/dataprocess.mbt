@@ -63,7 +63,7 @@ fn load_data() -> Array[Int] {
 }
 
 ///|
-async fn remote_task[In : @json.FromJson + ToJson, Out : @json.FromJson + ToJson](
+async fn remote_task[In : @moonchor.Message, Out : @moonchor.Message](
   ctx : @moonchor.ChoreoContext,
   worker : Worker,
   arg : @moonchor.Located[In, Manager],
