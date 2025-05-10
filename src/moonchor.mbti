@@ -38,9 +38,10 @@ impl Backend {
 
 type ChoreoContext
 impl ChoreoContext {
-  broadcast[T : Message, L : Location](Self, L, Located[T, L]) -> T
+  announce[T : Message, L : Location](Self, L, Located[T, L]) -> T
   comm[T : Message, From : Location, To : Location](Self, From, To, Located[T, From]) -> Located[T, To]
   locally[T, L : Location](Self, L, (Unwrapper[L]) -> T) -> Located[T, L]
+  locally_announce[T : Message, L : Location](Self, L, (Unwrapper[L]) -> T) -> T
 }
 
 type ConsoleLogger
@@ -68,8 +69,5 @@ pub trait Logger {
 }
 
 pub(open) trait Message : ToJson + @json.FromJson {
-}
-
-pub(open) trait PolyLocation : Location + Message {
 }
 

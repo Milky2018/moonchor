@@ -125,11 +125,10 @@ test "bookshop 2.0" {
   let backend = @moonchor.make_local_backend([buyer, seller],
     // logger=make_console_logger(),
   )
-  let _buyer_handler = @moonchor.run_async(async fn() {
+  @moonchor.run_async(async fn() {
     @moonchor.run_choreo!(backend, bookshop_v2, buyer)
   })
-  let _seller_handler = @moonchor.run_async(async fn() {
+  @moonchor.run_async(async fn() {
     @moonchor.run_choreo!(backend, bookshop_v2, seller)
   })
-
 }

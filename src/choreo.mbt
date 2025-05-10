@@ -1,4 +1,3 @@
-
 ///|
 struct ChoreoContext {
   location : &Location
@@ -75,4 +74,14 @@ pub async fn ChoreoContext::announce[T : Message, L : Location](
     let value = self.backend.recv!(loc, self.location)
     value
   }
+}
+
+///|
+pub async fn ChoreoContext::locally_announce[T : Message, L : Location](
+  self : ChoreoContext,
+  loc : L,
+  computation : (Unwrapper[L]) -> T
+) -> T {
+  let located_value = self.locally(loc, computation)
+  self.announce!(loc, located_value)
 }

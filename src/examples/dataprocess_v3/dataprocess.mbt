@@ -26,10 +26,11 @@ async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
   })
   let client_state = ctx.locally(client, fn(_unwrapper) { ClientState::new() })
   let executor = Executor::new(ctx, client, manager, manager_state)
-  let mut data_is_empty = ctx.locally(client, fn(unwrapper) {
-    unwrapper.unwrap(client_state).inputs.is_empty()
-  })
-  while not(ctx.announce!(client, data_is_empty)) {
+  while not(
+          ctx.locally_announce!(client, fn(unwrapper) {
+            unwrapper.unwrap(client_state).inputs.is_empty()
+          }),
+        ) {
     let data_piece_at_client = ctx.locally(client, fn(unwrapper) {
       unwrapper.unwrap(client_state).inputs.pop().unwrap()
     })
@@ -41,9 +42,6 @@ async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
       unwrapper.unwrap(client_state).outputs.push(result)
     })
     |> ignore
-    data_is_empty = ctx.locally(client, fn(unwrapper) {
-      unwrapper.unwrap(client_state).inputs.is_empty()
-    })
   }
   ctx.locally(client, fn(unwrapper) {
     let results = unwrapper.unwrap(client_state).outputs

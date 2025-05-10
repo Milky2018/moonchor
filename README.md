@@ -63,7 +63,9 @@ run_choreo!(backend, simple_choreo, alice)
 
 - [x] README
 - [ ] HTTP backend
-- [x] Broadcast and choice of knowledge
+- [x] Choice of knowledge
+- [ ] Enclave
+- [ ] Location specific choreography
 
 # Further Readings
 
