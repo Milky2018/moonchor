@@ -138,7 +138,7 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
       println("The server is working correctly")
       test_pass.val = true
     } else {
-      @moonchor.alert("The server is not working correctly")
+      @tlk.alert("The server is not working correctly")
     }
   })
   |> ignore
@@ -147,16 +147,10 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
 ///|
 test "kvstore 3.0" {
   let backend = @moonchor.make_local_backend([server, client, backup])
-  @moonchor.run_async(async fn() {
-    @moonchor.run_choreo!(backend, kvstore, server)
-  })
+  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, kvstore, server) })
   |> ignore
-  @moonchor.run_async(async fn() {
-    @moonchor.run_choreo!(backend, kvstore, client)
-  })
+  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, kvstore, client) })
   |> ignore
-  @moonchor.run_async(async fn() {
-    @moonchor.run_choreo!(backend, kvstore, backup)
-  })
+  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, kvstore, backup) })
   |> ignore
 }

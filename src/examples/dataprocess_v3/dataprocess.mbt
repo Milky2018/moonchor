@@ -53,7 +53,7 @@ fn start_location_sync(
   backend : @moonchor.Backend,
   loc : &@moonchor.Location
 ) -> Unit {
-  @moonchor.run_async(async fn() {
+  @tlk.run_async(async fn() {
     @moonchor.run_choreo!(backend, data_process, loc)
   })
 }

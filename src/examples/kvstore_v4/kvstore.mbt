@@ -118,7 +118,7 @@ fn check_consistency(responses : Array[Response]) -> Unit {
     Some(f) =>
       for res in responses {
         if res != f {
-          @moonchor.alert("Inconsistent state: \{res} != \{f}")
+          @tlk.alert("Inconsistent state: \{res} != \{f}")
           return
         }
       }
@@ -179,7 +179,7 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
       println("The server is working correctly")
       test_pass.val = true
     } else {
-      @moonchor.alert("The server is not working correctly")
+      @tlk.alert("The server is not working correctly")
     }
   })
   |> ignore
@@ -188,16 +188,8 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
 ///|
 test "kvstore 4.0" {
   let backend = @moonchor.make_local_backend([server, client, backup1, backup2])
-  @moonchor.run_async(async fn() {
-    @moonchor.run_choreo!(backend, kvstore, server)
-  })
-  @moonchor.run_async(async fn() {
-    @moonchor.run_choreo!(backend, kvstore, client)
-  })
-  @moonchor.run_async(async fn() {
-    @moonchor.run_choreo!(backend, kvstore, backup1)
-  })
-  @moonchor.run_async(async fn() {
-    @moonchor.run_choreo!(backend, kvstore, backup2)
-  })
+  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, kvstore, server) })
+  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, kvstore, client) })
+  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, kvstore, backup1) })
+  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, kvstore, backup2) })
 }

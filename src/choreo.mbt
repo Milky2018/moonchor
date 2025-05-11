@@ -21,7 +21,7 @@ pub async fn run_choreo[T, L : Location](
   let locations = backend.get_locations()
   let context = ChoreoContext::{ role, locations, backend, logger }
   if not(locations.contains(role)) {
-    alert(
+    @tlk.alert(
       "Bug: location " + role.name() + " is not registered. " + CONTACT_AUTHOR,
     )
   }
@@ -31,7 +31,7 @@ pub async fn run_choreo[T, L : Location](
 ///|
 fn check_location[L : Location](self : ChoreoContext, location : L) -> Unit {
   if not(self.locations.contains(location)) {
-    alert(
+    @tlk.alert(
       "Bug: location " +
       location.name() +
       " is out of enclave. " +
@@ -56,7 +56,8 @@ pub fn locally[T, L : Location](
   }
 }
 
-///| Sugar for `locally
+///| Sugar for `locally`. Be aware: the `value` will always be 
+/// evaluated. 
 pub fn pure[T, L : Location](
   self : ChoreoContext,
   location : L,
@@ -76,7 +77,7 @@ pub async fn comm[T : Message, From : Location, To : Location](
   self.check_location(to)
   self.logger.info("|CHOREO|COMM message from \{from.name()} to \{to.name()}")
   if from as &Location == to {
-    alert("Sending a message to the same location. ")
+    @tlk.alert("Sending a message to the same location. ")
   }
   if self.role == from {
     self.backend.send!(from, to, value.unwrap())
@@ -110,7 +111,15 @@ pub async fn ChoreoContext::broadcast[T : Message, L : Location](
   }
 }
 
-///|
+///| Locally compute and then broadcast the result.
+/// ```
+/// ctx.locally_broadcast!(loc, f)
+/// ```
+/// equals to 
+/// ```
+/// let value = ctx.locally(loc, f)
+/// ctx.broadcast!(loc, value)
+/// ```
 pub async fn ChoreoContext::locally_broadcast[T : Message, L : Location](
   self : ChoreoContext,
   loc : L,
@@ -120,7 +129,8 @@ pub async fn ChoreoContext::locally_broadcast[T : Message, L : Location](
   self.broadcast!(loc, located_value)
 }
 
-///|
+///| Make an enclave with a subchoreography where `broadcast` will
+/// only spread to the given locations.
 pub async fn ChoreoContext::enclave[T](
   self : ChoreoContext,
   locations : Array[&Location],
@@ -144,7 +154,7 @@ pub async fn ChoreoContext::enclave[T](
 /// ``` 
 /// announce(from, targets, located_value, fn (ctx, value) { ... })
 /// ``` 
-/// is just sugar for
+/// equals to
 /// ```
 /// ctx.enclave(targets + [from], fn (ctx) {
 ///   let value = ctx.broadcast!(from, located_value)

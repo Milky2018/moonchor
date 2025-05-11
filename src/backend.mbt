@@ -70,7 +70,7 @@ async fn recv[From : Location, To : Location, T : Message](
         let value = @json.from_json!(msg)
         return value
       } catch {
-        _ => alert("Bug: deserialzing JSON failed. " + CONTACT_AUTHOR)
+        _ => @tlk.alert("Bug: deserialzing JSON failed. " + CONTACT_AUTHOR)
       }
     }
   }
@@ -96,21 +96,3 @@ fn Backend::run[L : Location, T](
   let unwrapper = Unwrapper::{  }
   computation(unwrapper)
 }
-
-// ///|
-// async fn Backend::broadcast[From : Location, T : Message](
-//   self : Backend,
-//   from : From,
-//   msg : T
-// ) -> Unit {
-//   match self {
-//     Local(locations, channels, logger) => {
-//       logger.info("|BACKEND|\{from.name()}.broadcast(msg)")
-//       let targets = locations.filter(fn(loc) { loc != from })
-//       for to in targets {
-//         let channel = channels[(from, to)].unwrap()
-//         channel.push!(msg.to_json())
-//       }
-//     }
-//   }
-// }

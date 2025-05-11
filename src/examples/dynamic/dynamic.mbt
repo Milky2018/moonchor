@@ -30,10 +30,10 @@ test "Send message" {
   // Should print: 
   //   Received message: Hello
   let backend = @moonchor.make_local_backend([worker1, worker2])
-  @moonchor.run_async(async fn() {
+  @tlk.run_async(async fn() {
     @moonchor.run_choreo!(backend, send_msg, worker1)
   })
-  @moonchor.run_async(async fn() {
+  @tlk.run_async(async fn() {
     @moonchor.run_choreo!(backend, send_msg, worker2)
   })
 }

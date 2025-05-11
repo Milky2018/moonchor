@@ -66,7 +66,7 @@ async fn bookshop_v1(ctx : @moonchor.ChoreoContext) -> Unit {
       println("I will sell the book")
     } else {
       println("I will not sell the book")
-      @moonchor.alert("Should sell the book.")
+      @tlk.alert("Should sell the book.")
     }
   })
   |> ignore
@@ -109,10 +109,10 @@ test "bookshop 1.0" {
   //   I will not buy the book
   //   I will not sell the book
   let backend = @moonchor.make_local_backend([buyer, seller])
-  @moonchor.run_async(async fn() {
+  @tlk.run_async(async fn() {
     @moonchor.run_choreo!(backend, bookshop_v1, buyer)
   })
-  @moonchor.run_async(async fn() {
+  @tlk.run_async(async fn() {
     @moonchor.run_choreo!(backend, bookshop_v1, seller)
   })
 }
@@ -125,10 +125,10 @@ test "bookshop 2.0" {
   let backend = @moonchor.make_local_backend([buyer, seller],
     // logger=make_console_logger(),
   )
-  @moonchor.run_async(async fn() {
+  @tlk.run_async(async fn() {
     @moonchor.run_choreo!(backend, bookshop_v2, buyer)
   })
-  @moonchor.run_async(async fn() {
+  @tlk.run_async(async fn() {
     @moonchor.run_choreo!(backend, bookshop_v2, seller)
   })
 }

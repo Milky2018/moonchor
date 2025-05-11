@@ -5,11 +5,9 @@ import(
 )
 
 // Values
-fn alert[Any](String) -> Any
-
-fn check_location(Backend, &Location) -> Bool
-
 fn comm[T : Message, From : Location, To : Location](ChoreoContext, From, To, Located[T, From]) -> Located[T, To]
+
+fn get_locations(Backend) -> Array[&Location]
 
 fn get_logger(Backend) -> &Logger
 
@@ -23,27 +21,23 @@ fn make_mute_logger() -> MuteLogger
 
 fn pure[T, L : Location](ChoreoContext, L, T) -> Located[T, L]
 
-fn run_async(() -> Unit) -> Unit
-
 fn run_choreo[T, L : Location](Backend, (ChoreoContext) -> T, L, logger? : &Logger) -> T
-
-fn suspend[A](((A) -> Unit) -> Unit) -> A
-
-fn suspend_err[A](((A) -> Unit, (Error) -> Unit) -> Unit) -> A!
 
 // Types and methods
 type Backend
 impl Backend {
-  check_location(Self, &Location) -> Bool
+  get_locations(Self) -> Array[&Location]
   get_logger(Self) -> &Logger
 }
 
 type ChoreoContext
 impl ChoreoContext {
-  announce[T : Message, L : Location](Self, L, Located[T, L]) -> T
+  announce[T : Message, L : Location, R](Self, L, Array[&Location], Located[T, L], (Self, T) -> R) -> R
+  broadcast[T : Message, L : Location](Self, L, Located[T, L]) -> T
   comm[T : Message, From : Location, To : Location](Self, From, To, Located[T, From]) -> Located[T, To]
+  enclave[T](Self, Array[&Location], (Self) -> T) -> T
   locally[T, L : Location](Self, L, (Unwrapper[L]) -> T) -> Located[T, L]
-  locally_announce[T : Message, L : Location](Self, L, (Unwrapper[L]) -> T) -> T
+  locally_broadcast[T : Message, L : Location](Self, L, (Unwrapper[L]) -> T) -> T
   pure[T, L : Location](Self, L, T) -> Located[T, L]
 }
 
@@ -51,6 +45,9 @@ type ConsoleLogger
 impl Logger for ConsoleLogger
 
 type Located[T, _]
+impl Located {
+  map[T, L, R](Self[T, L], (T) -> R) -> Self[R, L]
+}
 
 type MuteLogger
 impl Logger for MuteLogger

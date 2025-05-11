@@ -132,11 +132,11 @@ test "data_process 2.0" {
   let backend = @moonchor.make_local_backend([
     manager, worker1, worker2, worker3, worker4,
   ])
-  @moonchor.run_async(async fn() {
+  @tlk.run_async(async fn() {
     @moonchor.run_choreo!(backend, data_process, manager)
   })
   for worker in workers {
-    @moonchor.run_async(async fn() {
+    @tlk.run_async(async fn() {
       @moonchor.run_choreo!(backend, data_process, worker)
     })
   }

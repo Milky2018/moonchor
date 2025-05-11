@@ -1,3 +1,9 @@
 {
-  "import": ["peter-jerry-ye/async/channel"]
+  "import": [
+    "peter-jerry-ye/async/channel",
+    {
+      "path": "Milky2018/toolkit",
+      "alias": "tlk"
+    }
+  ]
 }
