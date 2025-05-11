@@ -5,11 +5,14 @@ struct ChoreoContext {
   logger : &Logger
 }
 
+///| Choreography type.
+typealias Choreo[T] = (ChoreoContext) -> T!Async
+
 ///| Run a choreography in the given location and backend.
 /// Default logger is the backend logger.
 pub async fn run_choreo[T, L : Location](
   backend : Backend,
-  choreography : (ChoreoContext) -> T!Async,
+  choreography : Choreo[T],
   role : L,
   logger? : &Logger
 ) -> T {
@@ -36,6 +39,15 @@ pub fn locally[T, L : Location](
   } else {
     return Located::Absent
   }
+}
+
+///| Sugar for `locally
+pub fn pure[T, L : Location](
+  self : ChoreoContext,
+  location : L,
+  value : T
+) -> Located[T, L] {
+  self.locally(location, fn(_unwrapper) { value })
 }
 
 ///| Communication between two locations.

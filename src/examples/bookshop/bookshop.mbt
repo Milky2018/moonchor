@@ -42,7 +42,7 @@ fn get_delivery_date(_title : String) -> String {
 
 ///|
 async fn bookshop_v1(ctx : @moonchor.ChoreoContext) -> Unit {
-  let title_at_buyer = ctx.locally(buyer, fn(_unwrapper) { get_title() })
+  let title_at_buyer = ctx.pure(buyer, get_title())
   let title_at_seller = ctx.comm!(buyer, seller, title_at_buyer)
   let price_at_seller = ctx.locally(seller, fn(unwrapper) {
     let title = unwrapper.unwrap(title_at_seller)
@@ -73,7 +73,7 @@ async fn bookshop_v1(ctx : @moonchor.ChoreoContext) -> Unit {
 
 ///|
 async fn bookshop_v2(ctx : @moonchor.ChoreoContext) -> Unit {
-  let title_at_buyer = ctx.locally(buyer, fn(_unwrapper) { get_title() })
+  let title_at_buyer = ctx.pure(buyer, get_title())
   let title_at_seller = ctx.comm!(buyer, seller, title_at_buyer)
   let price_at_seller = ctx.locally(seller, fn(unwrapper) {
     let title = unwrapper.unwrap(title_at_seller)
@@ -98,8 +98,7 @@ async fn bookshop_v2(ctx : @moonchor.ChoreoContext) -> Unit {
     })
     |> ignore
   } else {
-    ctx.locally(seller, fn(_unwrapper) { println("I will not sell the book") })
-    |> ignore
+    ctx.pure(seller, println("I will not sell the book")) |> ignore
   }
 }
 

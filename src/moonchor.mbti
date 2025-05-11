@@ -21,6 +21,8 @@ fn make_local_backend(Array[&Location], logger~ : &Logger = ..) -> Backend
 
 fn make_mute_logger() -> MuteLogger
 
+fn pure[T, L : Location](ChoreoContext, L, T) -> Located[T, L]
+
 fn run_async(() -> Unit) -> Unit
 
 fn run_choreo[T, L : Location](Backend, (ChoreoContext) -> T, L, logger? : &Logger) -> T
@@ -42,6 +44,7 @@ impl ChoreoContext {
   comm[T : Message, From : Location, To : Location](Self, From, To, Located[T, From]) -> Located[T, To]
   locally[T, L : Location](Self, L, (Unwrapper[L]) -> T) -> Located[T, L]
   locally_announce[T : Message, L : Location](Self, L, (Unwrapper[L]) -> T) -> T
+  pure[T, L : Location](Self, L, T) -> Located[T, L]
 }
 
 type ConsoleLogger

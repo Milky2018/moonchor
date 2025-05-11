@@ -21,10 +21,8 @@ let client : Client = Client::{  }
 
 ///|
 async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
-  let manager_state = ctx.locally(manager, fn(_unwrapper) {
-    ManagerState::new(workers)
-  })
-  let client_state = ctx.locally(client, fn(_unwrapper) { ClientState::new() })
+  let manager_state = ctx.pure(manager, ManagerState::new(workers))
+  let client_state = ctx.pure(client, ClientState::new())
   let executor = Executor::new(ctx, client, manager, manager_state)
   while not(
           ctx.locally_announce!(client, fn(unwrapper) {

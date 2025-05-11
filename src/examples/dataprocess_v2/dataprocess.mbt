@@ -41,6 +41,11 @@ priv struct ManagerState {
 }
 
 ///|
+fn ManagerState::new() -> ManagerState {
+  { counter: 0, results: [] }
+}
+
+///|
 fn ManagerState::get_new_counter(self : ManagerState) -> Int {
   let counter = self.counter
   self.counter = counter + 1
@@ -80,10 +85,8 @@ async fn remote_task[In : @moonchor.Message, Out : @moonchor.Message](
 
 ///|
 async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
-  let state_at_manager = ctx.locally(manager, fn(_unwrapper) {
-    ManagerState::{ counter: 0, results: [] }
-  })
-  let data_at_manager = ctx.locally(manager, fn(_unwrapper) { load_data() })
+  let state_at_manager = ctx.pure(manager, ManagerState::new())
+  let data_at_manager = ctx.pure(manager, load_data())
   let mut data_is_empty = ctx.locally(manager, fn(unwrapper) {
     unwrapper.unwrap(data_at_manager).is_empty()
   })

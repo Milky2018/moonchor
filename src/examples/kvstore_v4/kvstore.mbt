@@ -134,7 +134,7 @@ async fn put(
   key : String,
   value : Int
 ) -> Unit {
-  let request = ctx.locally(client, fn(_unwrapper) { Request::Put(key, value) })
+  let request = ctx.pure(client, Request::Put(key, value))
   access_server!(ctx, request, strategy) |> ignore
 }
 
@@ -144,7 +144,7 @@ async fn get(
   strategy : ReplicationStrategy,
   key : String
 ) -> @moonchor.Located[Response, Client] {
-  let request = ctx.locally(client, fn(_unwrapper) { Request::Get(key) })
+  let request = ctx.pure(client, Request::Get(key))
   access_server!(ctx, request, strategy)
 }
 
@@ -153,15 +153,9 @@ let test_pass : Ref[Bool] = Ref::new(false)
 
 ///|
 async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
-  let state_at_server = ctx.locally(server, fn(_unwrapper) {
-    ServerState::{ db: {} }
-  })
-  let state_at_backup1 = ctx.locally(backup1, fn(_unwrapper) {
-    ServerState::{ db: {} }
-  })
-  let state_at_backup2 = ctx.locally(backup2, fn(_unwrapper) {
-    ServerState::{ db: {} }
-  })
+  let state_at_server = ctx.pure(server, ServerState::{ db: {} })
+  let state_at_backup1 = ctx.pure(backup1, ServerState::{ db: {} })
+  let state_at_backup2 = ctx.pure(backup2, ServerState::{ db: {} })
   let strategy = double_replication_strategy!(
     state_at_server, state_at_backup1, state_at_backup2,
   )
