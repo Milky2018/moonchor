@@ -16,9 +16,9 @@ pub fn get_logger(self : Backend) -> &Logger {
 }
 
 ///|
-pub fn check_location(self : Backend, loc : &Location) -> Bool {
+pub fn get_locations(self : Backend) -> Array[&Location] {
   match self {
-    Local(locations, _, _) => locations.contains(loc)
+    Local(locations, _, _) => locations
   }
 }
 
@@ -82,7 +82,7 @@ struct Unwrapper[_] {}
 
 ///| Unwrap a located value.
 pub fn Unwrapper::unwrap[T, L](_ : Unwrapper[L], v : Located[T, L]) -> T {
-  unwrap(v)
+  v.unwrap()
 }
 
 ///|
@@ -97,20 +97,20 @@ fn Backend::run[L : Location, T](
   computation(unwrapper)
 }
 
-///|
-async fn Backend::broadcast[From : Location, T : Message](
-  self : Backend,
-  from : From,
-  msg : T
-) -> Unit {
-  match self {
-    Local(locations, channels, logger) => {
-      logger.info("|BACKEND|\{from.name()}.broadcast(msg)")
-      let targets = locations.filter(fn(loc) { loc != from })
-      for to in targets {
-        let channel = channels[(from, to)].unwrap()
-        channel.push!(msg.to_json())
-      }
-    }
-  }
-}
+// ///|
+// async fn Backend::broadcast[From : Location, T : Message](
+//   self : Backend,
+//   from : From,
+//   msg : T
+// ) -> Unit {
+//   match self {
+//     Local(locations, channels, logger) => {
+//       logger.info("|BACKEND|\{from.name()}.broadcast(msg)")
+//       let targets = locations.filter(fn(loc) { loc != from })
+//       for to in targets {
+//         let channel = channels[(from, to)].unwrap()
+//         channel.push!(msg.to_json())
+//       }
+//     }
+//   }
+// }

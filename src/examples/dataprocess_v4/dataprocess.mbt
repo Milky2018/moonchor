@@ -29,8 +29,8 @@ async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
             unwrapper.unwrap(client_state).inputs.is_empty()
           }),
         ) {
-    let data_piece_at_client = ctx.locally(client, fn(unwrapper) {
-      unwrapper.unwrap(client_state).inputs.pop().unwrap()
+    let data_piece_at_client = client_state.map(fn(state) {
+      state.inputs.pop().unwrap()
     })
     let result_at_client = executor.execute!(
       data_process_stage, data_piece_at_client,
@@ -41,10 +41,7 @@ async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
     })
     |> ignore
   }
-  ctx.locally(client, fn(unwrapper) {
-    let results = unwrapper.unwrap(client_state).outputs
-    println("Final results: \{results}")
-  })
+  client_state.map(fn(state) { println("Final results: \{state.outputs}") })
   |> ignore
 }
 
@@ -59,7 +56,7 @@ fn start_location_sync(
 }
 
 ///|
-test "data_process 3.0" {
+test "data_process 4.0" {
   // Should print:
   //   Processing data at worker1
   //   Processing data at worker2

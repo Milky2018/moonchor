@@ -58,7 +58,6 @@ typealias Response = Int?
 
 ///|
 fn handle_request(state : ServerState, request : Request) -> Response {
-  // println("Handle: \{request}")
   match request {
     Request::Get(key) => state.db[key]
     Request::Put(key, value) => {
@@ -74,20 +73,14 @@ async fn do_backup[Backup : @moonchor.Location](
   request_at_server : @moonchor.Located[Request, Server],
   backup : Backup,
   state_at_backup : @moonchor.Located[ServerState, Backup]
-) -> Unit {
-  let request_is_put = ctx.locally(server, fn(unwrapper) {
-    let request = unwrapper.unwrap(request_at_server)
-    request is Put(_, _)
+) -> @moonchor.Located[Response, Server] {
+  let request_at_backup = ctx.comm!(server, backup, request_at_server)
+  let response_at_backup = ctx.locally(backup, fn(unwrapper) {
+    let request = unwrapper.unwrap(request_at_backup)
+    let state = unwrapper.unwrap(state_at_backup)
+    handle_request(state, request)
   })
-  if ctx.announce!(server, request_is_put) {
-    let request_at_backup = ctx.comm!(server, backup, request_at_server)
-    let response_at_backup = ctx.locally(backup, fn(unwrapper) {
-      let request = unwrapper.unwrap(request_at_backup)
-      let state = unwrapper.unwrap(state_at_backup)
-      handle_request(state, request)
-    })
-    ctx.comm!(backup, server, response_at_backup) |> ignore
-  }
+  ctx.comm!(backup, server, response_at_backup)
 }
 
 ///|
@@ -106,13 +99,29 @@ async fn double_replication_strategy(
     ctx : @moonchor.ChoreoContext,
     request_at_server : @moonchor.Located[Request, Server]
   ) {
-    do_backup!(ctx, request_at_server, backup1, state_at_backup1)
-    do_backup!(ctx, request_at_server, backup2, state_at_backup2)
+    let res1 = do_backup!(ctx, request_at_server, backup1, state_at_backup1)
+    let res2 = do_backup!(ctx, request_at_server, backup2, state_at_backup2)
     ctx.locally(server, fn(unwrapper) {
       let request = unwrapper.unwrap(request_at_server)
       let state = unwrapper.unwrap(state_at_server)
-      handle_request(state, request)
+      let res = handle_request(state, request)
+      check_consistency([unwrapper.unwrap(res1), unwrapper.unwrap(res2), res])
+      res
     })
+  }
+}
+
+///|
+fn check_consistency(responses : Array[Response]) -> Unit {
+  match responses.pop() {
+    None => return
+    Some(f) =>
+      for res in responses {
+        if res != f {
+          @moonchor.alert("Inconsistent state: \{res} != \{f}")
+          return
+        }
+      }
   }
 }
 
@@ -182,17 +191,13 @@ test "kvstore 4.0" {
   @moonchor.run_async(async fn() {
     @moonchor.run_choreo!(backend, kvstore, server)
   })
-  |> ignore
   @moonchor.run_async(async fn() {
     @moonchor.run_choreo!(backend, kvstore, client)
   })
-  |> ignore
   @moonchor.run_async(async fn() {
     @moonchor.run_choreo!(backend, kvstore, backup1)
   })
-  |> ignore
   @moonchor.run_async(async fn() {
     @moonchor.run_choreo!(backend, kvstore, backup2)
   })
-  |> ignore
 }
