@@ -80,10 +80,10 @@ pub async fn comm[T : Message, From : Location, To : Location](
     @tlk.alert("Sending a message to the same location. ")
   }
   if self.role == from {
-    self.backend.send!(from, to, value.unwrap())
+    self.backend.send!(to, value.unwrap())
     Located::Absent
   } else if self.role == to {
-    Located::Present(self.backend.recv!(from, to))
+    Located::Present(self.backend.recv!(to))
   } else {
     return Located::Absent
   }
@@ -101,12 +101,12 @@ pub async fn ChoreoContext::broadcast[T : Message, L : Location](
     let value = value.unwrap()
     for to in self.locations {
       if to != loc {
-        self.backend.send!(loc, to, value)
+        self.backend.send!(to, value)
       }
     }
     value
   } else {
-    let value = self.backend.recv!(loc, self.role)
+    let value = self.backend.recv!(self.role)
     value
   }
 }

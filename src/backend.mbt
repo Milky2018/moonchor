@@ -1,24 +1,20 @@
 ///|
 enum Backend {
-  Local(
-    Array[&Location],
-    Map[(&Location, &Location), @channel.T[Json]],
-    &Logger
-  )
+  Local(Map[&Location, @channel.T[Json]], &Logger)
   // HttpConfig
 }
 
 ///|
 pub fn get_logger(self : Backend) -> &Logger {
   match self {
-    Local(_, _, logger) => logger
+    Local(_, logger) => logger
   }
 }
 
 ///|
 pub fn get_locations(self : Backend) -> Array[&Location] {
   match self {
-    Local(locations, _, _) => locations
+    Local(channels, _) => channels.keys().to_array()
   }
 }
 
@@ -28,43 +24,33 @@ pub fn make_local_backend(
   logger~ : &Logger = make_mute_logger()
 ) -> Backend {
   let channels = {}
-  for from in locations {
-    for to in locations {
-      if from != to {
-        let channel = @channel.make()
-        channels[(from, to)] = channel
-      }
-    }
+  for location in locations {
+    channels[location] = @channel.make()
   }
-  Local(locations, channels, logger)
+  Local(channels, logger)
 }
 
 ///|
-async fn send[From : Location, To : Location, T : Message](
+async fn send[To : Location, T : Message](
   self : Backend,
-  from : From,
   to : To,
   msg : T
 ) -> Unit {
   match self {
-    Local(_locations, channels, logger) => {
-      logger.info("|BACKEND|\{from.name()}.send(msg, \{to.name()})")
-      let channel = channels[(from, to)].unwrap()
+    Local(channels, logger) => {
+      logger.info("|BACKEND|send(msg, \{to.name()})")
+      let channel = channels[to].unwrap()
       channel.push!(msg.to_json())
     }
   }
 }
 
 ///|
-async fn recv[From : Location, To : Location, T : Message](
-  self : Backend,
-  from : From,
-  to : To
-) -> T {
+async fn recv[To : Location, T : Message](self : Backend, to : To) -> T {
   match self {
-    Local(_locations, channels, logger) => {
-      logger.info("|BACKEND|\{to.name()}.recv(\{from.name()})")
-      let channel = channels[(from, to)].unwrap()
+    Local(channels, logger) => {
+      logger.info("|BACKEND|\{to.name()}.recv()")
+      let channel = channels[to].unwrap()
       let msg = channel.pop!()
       try {
         let value = @json.from_json!(msg)
@@ -100,17 +86,10 @@ fn Backend::run[L : Location, T](
 ///|
 fn Backend::register[L : Location](self : Backend, loc : L) -> Unit {
   match self {
-    Local(locations, channels, logger) => {
+    Local(channels, logger) => {
       logger.info("|BACKEND|Registering \{loc.name()}")
-      locations.push(loc)
-      for from in locations {
-        let channel = @channel.make()
-        channels[(from, loc)] = channel
-      }
-      for to in locations {
-        let channel = @channel.make()
-        channels[(loc, to)] = channel
-      }
+      let channel = @channel.make()
+      channels[loc] = channel
     }
   }
 }
@@ -118,15 +97,9 @@ fn Backend::register[L : Location](self : Backend, loc : L) -> Unit {
 ///|
 fn Backend::evict[L : Location](self : Backend, loc : L) -> Unit {
   match self {
-    Local(locations, channels, logger) => {
+    Local(channels, logger) => {
       logger.info("|BACKEND|Evicting \{loc.name()}")
-      locations.retain(fn(l) { l == loc })
-      for from in locations {
-        channels.remove((from, loc))
-      }
-      for to in locations {
-        channels.remove((loc, to))
-      }
+      channels.remove(loc)
     }
   }
 }
