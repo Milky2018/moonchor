@@ -7,6 +7,8 @@ import(
 // Values
 fn comm[T : Message, From : Location, To : Location](ChoreoContext, From, To, Located[T, From]) -> Located[T, To]
 
+fn connect_choreo[T, C : Location + Message, R : Location](Backend, (ChoreoContext, C) -> T, C, registry~ : R) -> T
+
 fn get_locations(Backend) -> Array[&Location]
 
 fn get_logger(Backend) -> &Logger
@@ -21,7 +23,9 @@ fn make_mute_logger() -> MuteLogger
 
 fn pure[T, L : Location](ChoreoContext, L, T) -> Located[T, L]
 
-fn run_choreo[T, L : Location](Backend, (ChoreoContext) -> T, L, logger? : &Logger) -> T
+fn run_choreo[T, L : Location](Backend, (ChoreoContext) -> T, L) -> T
+
+fn serve_choreo[T, S : Location, C : Location + Message](Backend, (ChoreoContext, C) -> T, S) -> Unit
 
 // Types and methods
 type Backend

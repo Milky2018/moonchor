@@ -67,7 +67,8 @@ async fn bookshop(ctx : @moonchor.ChoreoContext) -> Unit {
     })
     |> ignore
   } else {
-    ctx.pure(seller, println("I will not sell the book")) |> ignore
+    ctx.locally(seller, fn(_unwrapper) { println("I will not sell the book") })
+    |> ignore
   }
 }
 

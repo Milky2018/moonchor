@@ -6,6 +6,13 @@ struct ChoreoContext {
   logger : &Logger
 }
 
+///|
+fn ChoreoContext::new(backend : Backend, role : &Location) -> ChoreoContext {
+  let locations = backend.get_locations()
+  let logger = backend.get_logger()
+  ChoreoContext::{ role, locations, backend, logger }
+}
+
 ///| Choreography type.
 typealias Choreo[T] = (ChoreoContext) -> T!Async
 
@@ -14,12 +21,10 @@ typealias Choreo[T] = (ChoreoContext) -> T!Async
 pub async fn run_choreo[T, L : Location](
   backend : Backend,
   choreography : Choreo[T],
-  role : L,
-  logger? : &Logger
+  role : L
 ) -> T {
-  let logger = logger.or(backend.get_logger())
-  let locations = backend.get_locations()
-  let context = ChoreoContext::{ role, locations, backend, logger }
+  let context = ChoreoContext::new(backend, role)
+  let locations = context.locations
   if not(locations.contains(role)) {
     @tlk.alert(
       "Bug: location " + role.name() + " is not registered. " + CONTACT_AUTHOR,
