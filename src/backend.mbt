@@ -96,3 +96,41 @@ fn Backend::run[L : Location, T](
   let unwrapper = Unwrapper::{  }
   computation(unwrapper)
 }
+
+///|
+fn Backend::register[L : Location](self : Backend, loc : L) -> Unit {
+  match self {
+    Local(locations, channels, logger) => {
+      logger.info("|BACKEND|Registering \{loc.name()}")
+      locations.push(loc)
+      for from in locations {
+        let channel = @channel.make()
+        channels[(from, loc)] = channel
+      }
+      for to in locations {
+        let channel = @channel.make()
+        channels[(loc, to)] = channel
+      }
+    }
+  }
+}
+
+///|
+fn Backend::evict[L : Location](self : Backend, loc : L) -> Unit {
+  match self {
+    Local(locations, channels, logger) => {
+      logger.info("|BACKEND|Evicting \{loc.name()}")
+      locations.retain(fn(l) { l == loc })
+      for from in locations {
+        channels.remove((from, loc))
+      }
+      for to in locations {
+        channels.remove((loc, to))
+      }
+    }
+  }
+}
+
+// fn Backend::handle_register(self : Backend) -> &Location {
+
+// }

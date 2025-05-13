@@ -41,39 +41,7 @@ fn get_delivery_date(_title : String) -> String {
 }
 
 ///|
-async fn bookshop_v1(ctx : @moonchor.ChoreoContext) -> Unit {
-  let title_at_buyer = ctx.pure(buyer, get_title())
-  let title_at_seller = ctx.comm!(buyer, seller, title_at_buyer)
-  let price_at_seller = ctx.locally(seller, fn(unwrapper) {
-    let title = unwrapper.unwrap(title_at_seller)
-    get_price(title)
-  })
-  let price_at_buyer = ctx.comm!(seller, buyer, price_at_seller)
-  let decision_at_buyer = ctx.locally(buyer, fn(unwrapper) {
-    let price = unwrapper.unwrap(price_at_buyer)
-    if price < get_budget() {
-      println("I will buy the book")
-      true
-    } else {
-      println("I will not buy the book")
-      false
-    }
-  })
-  let decision_at_seller = ctx.comm!(buyer, seller, decision_at_buyer)
-  ctx.locally(seller, fn(unwrapper) {
-    let decision = unwrapper.unwrap(decision_at_seller)
-    if decision {
-      println("I will sell the book")
-    } else {
-      println("I will not sell the book")
-      @tlk.alert("Should sell the book.")
-    }
-  })
-  |> ignore
-}
-
-///|
-async fn bookshop_v2(ctx : @moonchor.ChoreoContext) -> Unit {
+async fn bookshop(ctx : @moonchor.ChoreoContext) -> Unit {
   let title_at_buyer = ctx.pure(buyer, get_title())
   let title_at_seller = ctx.comm!(buyer, seller, title_at_buyer)
   let price_at_seller = ctx.locally(seller, fn(unwrapper) {
@@ -106,29 +74,11 @@ async fn bookshop_v2(ctx : @moonchor.ChoreoContext) -> Unit {
 ///|
 test "bookshop 1.0" {
   // Should print: 
-  //   I will not buy the book
-  //   I will not sell the book
-  let backend = @moonchor.make_local_backend([buyer, seller])
-  @tlk.run_async(async fn() {
-    @moonchor.run_choreo!(backend, bookshop_v1, buyer)
-  })
-  @tlk.run_async(async fn() {
-    @moonchor.run_choreo!(backend, bookshop_v1, seller)
-  })
-}
-
-///|
-test "bookshop 2.0" {
-  // Should print: 
   //   I will sell the book
   //   The book will be delivered on 2025-10-01
   let backend = @moonchor.make_local_backend([buyer, seller],
     // logger=make_console_logger(),
   )
-  @tlk.run_async(async fn() {
-    @moonchor.run_choreo!(backend, bookshop_v2, buyer)
-  })
-  @tlk.run_async(async fn() {
-    @moonchor.run_choreo!(backend, bookshop_v2, seller)
-  })
+  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, bookshop, buyer) })
+  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, bookshop, seller) })
 }

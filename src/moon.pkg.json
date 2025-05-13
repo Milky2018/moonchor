@@ -1,6 +1,7 @@
 {
   "import": [
     "peter-jerry-ye/async/channel",
+    "peter-jerry-ye/async/promise",
     {
       "path": "Milky2018/toolkit",
       "alias": "tlk"

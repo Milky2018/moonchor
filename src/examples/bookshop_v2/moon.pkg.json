@@ -1,0 +1,9 @@
+{
+  "import": [
+    "Milky2018/moonchor",
+    {
+      "path": "Milky2018/toolkit",
+      "alias": "kit"
+    }
+  ]
+}
