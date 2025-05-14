@@ -61,16 +61,6 @@ pub fn locally[T, L : Location](
   }
 }
 
-///| Sugar for `locally`. Be aware: the `value` will always be 
-/// evaluated. 
-pub fn pure[T, L : Location](
-  self : ChoreoContext,
-  location : L,
-  value : T
-) -> Located[T, L] {
-  self.locally(location, fn(_unwrapper) { value })
-}
-
 ///| Communication between two locations.
 pub async fn comm[T : Message, From : Location, To : Location](
   self : ChoreoContext,

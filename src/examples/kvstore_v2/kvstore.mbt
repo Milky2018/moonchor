@@ -93,7 +93,7 @@ async fn put(
   key : String,
   value : Int
 ) -> Unit {
-  let request = ctx.pure(client, Request::Put(key, value))
+  let request = ctx.locally(client, fn(_unwrapper) { Request::Put(key, value) })
   access_server!(ctx, request, state_at_server, state_at_backup) |> ignore
 }
 
@@ -104,7 +104,7 @@ async fn get(
   state_at_backup : @moonchor.Located[ServerState, Backup],
   key : String
 ) -> @moonchor.Located[Response, Client] {
-  let request = ctx.pure(client, Request::Get(key))
+  let request = ctx.locally(client, fn(_unwrapper) { Request::Get(key) })
   access_server!(ctx, request, state_at_server, state_at_backup)
 }
 
@@ -113,8 +113,12 @@ let test_pass : Ref[Bool] = Ref::new(false)
 
 ///|
 async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
-  let state_at_server = ctx.pure(server, ServerState::{ db: {} })
-  let state_at_backup = ctx.pure(backup, ServerState::{ db: {} })
+  let state_at_server = ctx.locally(server, fn(_unwrapper) {
+    ServerState::{ db: {} }
+  })
+  let state_at_backup = ctx.locally(backup, fn(_unwrapper) {
+    ServerState::{ db: {} }
+  })
   put!(ctx, state_at_server, state_at_backup, "key1", 42)
   put!(ctx, state_at_server, state_at_backup, "key2", 41)
   let v1_at_client = get!(ctx, state_at_server, state_at_backup, "key1")

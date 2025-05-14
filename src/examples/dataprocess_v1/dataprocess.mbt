@@ -46,9 +46,9 @@ fn load_data() -> Array[Int] {
 
 ///|
 async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
-  let mut counter_at_manager = ctx.pure(manager, 0)
-  let data_at_manager = ctx.pure(manager, load_data())
-  let results_at_manager = ctx.pure(manager, [])
+  let mut counter_at_manager = ctx.locally(manager, fn(_unwrapper) { 0 })
+  let data_at_manager = ctx.locally(manager, fn(_unwrapper) { load_data() })
+  let results_at_manager = ctx.locally(manager, fn(_unwrapper) { [] })
   let mut data_is_empty = ctx.locally(manager, fn(unwrapper) {
     unwrapper.unwrap(data_at_manager).is_empty()
   })
