@@ -14,7 +14,7 @@ fn ChoreoContext::new(backend : Backend, role : &Location) -> ChoreoContext {
 }
 
 ///| Choreography type.
-typealias Choreo[T] = (ChoreoContext) -> T!Async
+pub typealias Choreo[T] = (ChoreoContext) -> T!Async
 
 ///| Run a choreography in the given location and backend.
 /// Default logger is the backend logger.
