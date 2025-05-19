@@ -39,9 +39,9 @@ async fn send[To : Location, T : Message](
   match self {
     Local(channels, logger) => {
       logger.info("|BACKEND|send(msg, \{to.name()})")
-      let channel = channels[to].or_else(fn() {
-        @tlk.alert("Channel \{to.name()} not found")
-      })
+      let channel = channels
+        .get(to)
+        .or_else(fn() { @tlk.alert("Channel \{to.name()} not found") })
       channel.push!(msg.to_json())
     }
   }
@@ -52,9 +52,9 @@ async fn recv[To : Location, T : Message](self : Backend, to : To) -> T {
   match self {
     Local(channels, logger) => {
       logger.info("|BACKEND|\{to.name()}.recv()")
-      let channel = channels[to].or_else(fn() {
-        @tlk.alert("Channel \{to.name()} not found")
-      })
+      let channel = channels
+        .get(to)
+        .or_else(fn() { @tlk.alert("Channel \{to.name()} not found") })
       let msg = channel.pop!()
       try {
         let value = @json.from_json!(msg)

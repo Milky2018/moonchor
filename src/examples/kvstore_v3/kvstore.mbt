@@ -48,7 +48,7 @@ typealias Response = Int?
 ///|
 fn handle_request(state : ServerState, request : Request) -> Response {
   match request {
-    Request::Get(key) => state.db[key]
+    Request::Get(key) => state.db.get(key)
     Request::Put(key, value) => {
       state.db[key] = value
       None
