@@ -4,13 +4,22 @@ struct ChoreoContext {
   locations : Array[&Location]
   backend : Backend
   logger : &Logger
+  prefix : Array[Int]
+  mut id_counter : Int
 }
 
 ///|
 fn ChoreoContext::new(backend : Backend, role : &Location) -> ChoreoContext {
   let locations = backend.get_locations()
   let logger = backend.get_logger()
-  ChoreoContext::{ role, locations, backend, logger }
+  ChoreoContext::{ role, locations, backend, logger, id_counter: 0, prefix: [] }
+}
+
+///|
+fn ChoreoContext::new_id(self : ChoreoContext) -> Int {
+  let id = self.id_counter
+  self.id_counter += 1
+  id
 }
 
 ///| Choreography type.
@@ -70,15 +79,18 @@ pub async fn comm[T : Message, From : Location, To : Location](
 ) -> Located[T, To] {
   self.check_location(from)
   self.check_location(to)
-  self.logger.info("|CHOREO|COMM message from \{from.name()} to \{to.name()}")
+  let id = self.new_id()
+  self.logger.info(
+    "|CHOREO|COMM:\{id} message from \{from.name()} to \{to.name()}",
+  )
   if from as &Location == to {
     @tlk.alert("Sending a message to the same location. ")
   }
   if self.role == from {
-    self.backend.send!(to, value.unwrap())
+    self.backend.send(to, value.unwrap(), self.prefix + [id])
     Located::Absent
   } else if self.role == to {
-    Located::Present(self.backend.recv!(to))
+    Located::Present(self.backend.recv!(to, self.prefix + [id]))
   } else {
     return Located::Absent
   }
@@ -91,17 +103,18 @@ pub async fn ChoreoContext::broadcast[T : Message, L : Location](
   value : Located[T, L]
 ) -> T {
   self.check_location(loc)
-  self.logger.info("|CHOREO|BROADCAST at \{loc.name()}")
+  let id = self.new_id()
+  self.logger.info("|CHOREO|BROADCAST:\{id} at \{loc.name()}")
   if self.role == loc {
     let value = value.unwrap()
     for to in self.locations {
       if to != loc {
-        self.backend.send!(to, value)
+        self.backend.send(to, value, self.prefix + [id])
       }
     }
     value
   } else {
-    let value = self.backend.recv!(self.role)
+    let value = self.backend.recv!(self.role, self.prefix + [id])
     value
   }
 }
@@ -126,22 +139,27 @@ pub async fn ChoreoContext::locally_broadcast[T : Message, L : Location](
 
 ///| Make an enclave with a subchoreography where `broadcast` will
 /// only spread to the given locations.
-pub async fn ChoreoContext::enclave[T](
+pub async fn ChoreoContext::enclave(
   self : ChoreoContext,
   locations : Array[&Location],
-  subchoreo : Choreo[T]
-) -> T {
+  subchoreo : Choreo[Unit]
+) -> Unit {
   for loc in locations {
     self.check_location(loc)
   }
-  self.logger.info("|CHOREO|ENCLAVE at \{self.role.name()}")
+  let id = self.new_id()
+  self.logger.info("|CHOREO|ENCLAVE:\{id} at \{self.role.name()}")
   let context = ChoreoContext::{
     role: self.role,
     locations,
     backend: self.backend,
     logger: self.logger,
+    id_counter: 0,
+    prefix: self.prefix + [id],
   }
-  subchoreo!(context)
+  if locations.contains(self.role) {
+    subchoreo!(context)
+  }
 }
 
 ///| Announce a located value to all locations in the given array. 
@@ -156,13 +174,13 @@ pub async fn ChoreoContext::enclave[T](
 ///   ...
 /// })
 /// ```
-pub async fn ChoreoContext::announce[T : Message, L : Location, R](
+pub async fn ChoreoContext::announce[T : Message, L : Location](
   self : ChoreoContext,
   loc : L,
   targets : Array[&Location],
   located_value : Located[T, L],
-  subchoreo : (ChoreoContext, T) -> R!Async
-) -> R {
+  subchoreo : (ChoreoContext, T) -> Unit!Async
+) -> Unit {
   self.enclave!(targets + [loc], fn(ctx) {
     let value = ctx.broadcast!(loc, located_value)
     subchoreo!(ctx, value)

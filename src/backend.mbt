@@ -1,6 +1,6 @@
 ///|
 enum Backend {
-  Local(Map[&Location, @channel.T[Json]], &Logger)
+  Local(Map[&Location, @guardch.GuardChannel[(Array[Int], Json)]], &Logger)
   // HttpConfig
 }
 
@@ -25,16 +25,17 @@ pub fn make_local_backend(
 ) -> Backend {
   let channels = {}
   for location in locations {
-    channels[location] = @channel.make()
+    channels[location] = @guardch.GuardChannel::new()
   }
   Local(channels, logger)
 }
 
 ///|
-async fn send[To : Location, T : Message](
+fn send[To : Location, T : Message](
   self : Backend,
   to : To,
-  msg : T
+  msg : T,
+  id_list : Array[Int]
 ) -> Unit {
   match self {
     Local(channels, logger) => {
@@ -42,22 +43,26 @@ async fn send[To : Location, T : Message](
       let channel = channels
         .get(to)
         .or_else(fn() { @tlk.alert("Channel \{to.name()} not found") })
-      channel.push!(msg.to_json())
+      channel.send((id_list, msg.to_json()))
     }
   }
 }
 
 ///|
-async fn recv[To : Location, T : Message](self : Backend, to : To) -> T {
+async fn recv[To : Location, T : Message](
+  self : Backend,
+  to : To,
+  id_list : Array[Int]
+) -> T {
   match self {
     Local(channels, logger) => {
       logger.info("|BACKEND|\{to.name()}.recv()")
       let channel = channels
         .get(to)
         .or_else(fn() { @tlk.alert("Channel \{to.name()} not found") })
-      let msg = channel.pop!()
+      let msg = channel.recv!(fn(target) { target.0 == id_list })
       try {
-        let value = @json.from_json!(msg)
+        let value = @json.from_json!(msg.1)
         return value
       } catch {
         _ => @tlk.alert("Bug: deserialzing JSON failed. " + CONTACT_AUTHOR)
@@ -87,23 +92,21 @@ fn Backend::run[L : Location, T](
   computation(unwrapper)
 }
 
-///|
-fn Backend::register[L : Location](self : Backend, loc : L) -> Unit {
-  match self {
-    Local(channels, logger) => {
-      logger.info("|BACKEND|Registering \{loc.name()}")
-      let channel = @channel.make()
-      channels[loc] = channel
-    }
-  }
-}
+// fn Backend::register[L : Location](self : Backend, loc : L) -> Unit {
+//   match self {
+//     Local(channels, logger) => {
+//       logger.info("|BACKEND|Registering \{loc.name()}")
+//       let channel = 
+//       channels[loc] = channel
+//     }
+//   }
+// }
 
-///|
-fn Backend::evict[L : Location](self : Backend, loc : L) -> Unit {
-  match self {
-    Local(channels, logger) => {
-      logger.info("|BACKEND|Evicting \{loc.name()}")
-      channels.remove(loc)
-    }
-  }
-}
+// fn Backend::evict[L : Location](self : Backend, loc : L) -> Unit {
+//   match self {
+//     Local(channels, logger) => {
+//       logger.info("|BACKEND|Evicting \{loc.name()}")
+//       channels.remove(loc)
+//     }
+//   }
+// }

@@ -1,9 +1,9 @@
 {
   "import": [
-    "Milky2018/guardch",
+    "Milky2018/moonchor",
     {
       "path": "Milky2018/toolkit",
-      "alias": "tlk"
+      "alias": "kit"
     }
   ]
 }
