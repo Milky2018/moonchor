@@ -1,9 +1,9 @@
 {
   "name": "Milky2018/moonchor",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "deps": {
-    "peter-jerry-ye/async": "0.1.6",
-    "Milky2018/toolkit": "0.1.2"
+    "Milky2018/toolkit": "0.1.2",
+    "Milky2018/guardch": "0.1.0"
   },
   "readme": "README.md",
   "repository": "https://github.com/Milky2018/moonchor.git",
