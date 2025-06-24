@@ -5,14 +5,7 @@ enum Located[T, _] {
 }
 
 ///| Mapping a located value
-/// ```
-/// v.map(f)
-/// ``` 
-/// Equals to 
-/// ```
-/// ctx.locally(loc, fn (unwrapper) { f(unwrapper.unwrap(v)) })
-/// ```
-pub fn Located::map[T, L, R](
+pub fn[T, L, R] Located::map(
   self : Located[T, L],
   f : (T) -> R
 ) -> Located[R, L] {
@@ -23,7 +16,7 @@ pub fn Located::map[T, L, R](
 }
 
 ///| 
-fn Located::unwrap[T, L](self : Located[T, L]) -> T {
+fn[T, L] Located::unwrap(self : Located[T, L]) -> T {
   match self {
     Located::Present(t) => t
     Located::Absent =>

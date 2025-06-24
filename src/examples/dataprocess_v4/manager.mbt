@@ -25,7 +25,7 @@ fn ManagerState::get_worker(self : ManagerState) -> Worker {
 }
 
 ///|
-async fn handle_task[In : @moonchor.Message, Out : @moonchor.Message](
+async fn[In : @moonchor.Message, Out : @moonchor.Message] handle_task(
   ctx : @moonchor.ChoreoContext,
   manager : Manager,
   state : @moonchor.Located[ManagerState, Manager],
@@ -35,12 +35,12 @@ async fn handle_task[In : @moonchor.Message, Out : @moonchor.Message](
   let worker_at_manager = ctx.locally(manager, fn(unwrapper) {
     unwrapper.unwrap(state).get_worker()
   })
-  let worker = ctx.broadcast!(manager, worker_at_manager)
-  let arg_at_worker = ctx.comm!(manager, worker, arg)
+  let worker = ctx.broadcast(manager, worker_at_manager)
+  let arg_at_worker = ctx.comm(manager, worker, arg)
   let result_at_worker = ctx.locally(worker, fn(unwrapper) {
     let arg = unwrapper.unwrap(arg_at_worker)
     println("Processing data at \{worker.name()}")
     task(arg)
   })
-  ctx.comm!(worker, manager, result_at_worker)
+  ctx.comm(worker, manager, result_at_worker)
 }

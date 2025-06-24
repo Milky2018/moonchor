@@ -52,7 +52,7 @@ async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
   let mut data_is_empty = ctx.locally(manager, fn(unwrapper) {
     unwrapper.unwrap(data_at_manager).is_empty()
   })
-  while not(ctx.broadcast!(manager, data_is_empty)) {
+  while not(ctx.broadcast(manager, data_is_empty)) {
     let data_piece_at_manager = ctx.locally(manager, fn(unwrapper) {
       unwrapper.unwrap(data_at_manager).pop().unwrap()
     })
@@ -61,18 +61,18 @@ async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
       let idx = counter % workers.length()
       workers[idx]
     })
-    let worker = ctx.broadcast!(manager, worker_at_manager)
+    let worker = ctx.broadcast(manager, worker_at_manager)
     counter_at_manager = ctx.locally(manager, fn(unwrapper) {
       let counter = unwrapper.unwrap(counter_at_manager)
       counter + 1
     })
-    let data_piece_at_worker = ctx.comm!(manager, worker, data_piece_at_manager)
+    let data_piece_at_worker = ctx.comm(manager, worker, data_piece_at_manager)
     let result_at_worker = ctx.locally(worker, fn(unwrapper) {
       let data_piece = unwrapper.unwrap(data_piece_at_worker)
       println("Processing data piece: \{data_piece} at \{worker.name()}")
       data_process_stage(data_piece)
     })
-    let result_at_manager = ctx.comm!(worker, manager, result_at_worker)
+    let result_at_manager = ctx.comm(worker, manager, result_at_worker)
     ctx.locally(manager, fn(unwrapper) {
       let results = unwrapper.unwrap(results_at_manager)
       let result = unwrapper.unwrap(result_at_manager)
@@ -102,11 +102,11 @@ test "data_process 1.0" {
     manager, worker1, worker2, worker3, worker4,
   ])
   @tlk.run_async(async fn() {
-    @moonchor.run_choreo!(backend, data_process, manager)
+    @moonchor.run_choreo(backend, data_process, manager)
   })
   for worker in workers {
     @tlk.run_async(async fn() {
-      @moonchor.run_choreo!(backend, data_process, worker)
+      @moonchor.run_choreo(backend, data_process, worker)
     })
   }
 }

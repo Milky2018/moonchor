@@ -17,18 +17,18 @@ fn Executor::new(
 }
 
 ///|
-async fn Executor::execute[In : @moonchor.Message, Out : @moonchor.Message](
+async fn[In : @moonchor.Message, Out : @moonchor.Message] Executor::execute(
   self : Executor,
   task : (In) -> Out,
   arg : @moonchor.Located[In, Client]
 ) -> @moonchor.Located[Out, Client] {
-  let arg_at_manager = self.ctx.comm!(self.client, self.manager, arg)
-  let result_at_manager = handle_task!(
+  let arg_at_manager = self.ctx.comm(self.client, self.manager, arg)
+  let result_at_manager = handle_task(
     self.ctx,
     manager,
     self.manager_state,
     arg_at_manager,
     task,
   )
-  self.ctx.comm!(self.manager, self.client, result_at_manager)
+  self.ctx.comm(self.manager, self.client, result_at_manager)
 }

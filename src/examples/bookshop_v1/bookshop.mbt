@@ -43,22 +43,22 @@ fn get_delivery_date(_title : String) -> String {
 ///|
 async fn bookshop(ctx : @moonchor.ChoreoContext) -> Unit {
   let title_at_buyer = ctx.locally(buyer, fn(_unwrapper) { get_title() })
-  let title_at_seller = ctx.comm!(buyer, seller, title_at_buyer)
+  let title_at_seller = ctx.comm(buyer, seller, title_at_buyer)
   let price_at_seller = ctx.locally(seller, fn(unwrapper) {
     let title = unwrapper.unwrap(title_at_seller)
     get_price(title)
   })
-  let price_at_buyer = ctx.comm!(seller, buyer, price_at_seller)
+  let price_at_buyer = ctx.comm(seller, buyer, price_at_seller)
   let decision_at_buyer = ctx.locally(buyer, fn(unwrapper) {
     let price = unwrapper.unwrap(price_at_buyer)
     price < get_budget()
   })
-  if ctx.broadcast!(buyer, decision_at_buyer) {
+  if ctx.broadcast(buyer, decision_at_buyer) {
     let delivery_date_at_seller = ctx.locally(seller, fn(unwrapper) {
       println("I will sell the book")
       get_delivery_date(unwrapper.unwrap(title_at_seller))
     })
-    let delivery_date_at_buyer = ctx.comm!(
+    let delivery_date_at_buyer = ctx.comm(
       seller, buyer, delivery_date_at_seller,
     )
     ctx.locally(buyer, fn(unwrapper) {
@@ -80,6 +80,6 @@ test "bookshop 1.0" {
   let backend = @moonchor.make_local_backend([buyer, seller],
     // logger=make_console_logger(),
   )
-  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, bookshop, buyer) })
-  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, bookshop, seller) })
+  @tlk.run_async(async fn() { @moonchor.run_choreo(backend, bookshop, buyer) })
+  @tlk.run_async(async fn() { @moonchor.run_choreo(backend, bookshop, seller) })
 }

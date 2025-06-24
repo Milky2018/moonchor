@@ -51,10 +51,10 @@ async fn out_of_order(ctx : @moonchor.ChoreoContext) -> Unit {
   let msg2 = ctx.locally(carol, fn(_unwrapper) { 2 })
   let nomsg = ctx.locally(alice, fn(_unwrapper) { 0 })
   for i in 0..<5 {
-    ctx.comm!(alice, dummy, nomsg) |> ignore
+    ctx.comm(alice, dummy, nomsg) |> ignore
   }
-  let msg1 = ctx.comm!(alice, bob, msg1)
-  let msg2 = ctx.comm!(carol, bob, msg2)
+  let msg1 = ctx.comm(alice, bob, msg1)
+  let msg2 = ctx.comm(carol, bob, msg2)
   ctx.locally(bob, fn(unwrapper) {
     let msg1 = unwrapper.unwrap(msg1)
     let msg2 = unwrapper.unwrap(msg2)
@@ -67,17 +67,9 @@ async fn out_of_order(ctx : @moonchor.ChoreoContext) -> Unit {
 ///|
 test "out of order 1.0" {
   let backend = @moonchor.make_local_backend([alice, bob, carol, dummy])
-  @kit.run_async(async fn() {
-    @moonchor.run_choreo!(backend, out_of_order, alice)
-  })
-  @kit.run_async(async fn() {
-    @moonchor.run_choreo!(backend, out_of_order, bob)
-  })
-  @kit.run_async(async fn() {
-    @moonchor.run_choreo!(backend, out_of_order, carol)
-  })
-  @kit.run_async(async fn() {
-    @moonchor.run_choreo!(backend, out_of_order, dummy)
-  })
-  assert_eq!(validates, [1, 2])
+  @kit.run_async(() => @moonchor.run_choreo(backend, out_of_order, alice))
+  @kit.run_async(() => @moonchor.run_choreo(backend, out_of_order, bob))
+  @kit.run_async(() => @moonchor.run_choreo(backend, out_of_order, carol))
+  @kit.run_async(() => @moonchor.run_choreo(backend, out_of_order, dummy))
+  assert_eq(validates, [1, 2])
 }

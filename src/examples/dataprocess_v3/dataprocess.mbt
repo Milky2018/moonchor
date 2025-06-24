@@ -27,14 +27,14 @@ async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
   let client_state = ctx.locally(client, fn(_unwrapper) { ClientState::new() })
   let executor = Executor::new(ctx, client, manager, manager_state)
   while not(
-          ctx.locally_broadcast!(client, fn(unwrapper) {
+          ctx.locally_broadcast(client, fn(unwrapper) {
             unwrapper.unwrap(client_state).inputs.is_empty()
           }),
         ) {
     let data_piece_at_client = ctx.locally(client, fn(unwrapper) {
       unwrapper.unwrap(client_state).inputs.pop().unwrap()
     })
-    let result_at_client = executor.execute!(
+    let result_at_client = executor.execute(
       data_process_stage, data_piece_at_client,
     )
     ctx.locally(client, fn(unwrapper) {
@@ -55,9 +55,7 @@ fn start_location_sync(
   backend : @moonchor.Backend,
   loc : &@moonchor.Location
 ) -> Unit {
-  @tlk.run_async(async fn() {
-    @moonchor.run_choreo!(backend, data_process, loc)
-  })
+  @tlk.run_async(async fn() { @moonchor.run_choreo(backend, data_process, loc) })
 }
 
 ///|

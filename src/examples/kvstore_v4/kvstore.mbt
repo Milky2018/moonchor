@@ -54,7 +54,7 @@ priv enum Request {
 } derive(ToJson, FromJson, Show)
 
 ///|
-typealias Response = Int?
+typealias Int? as Response
 
 ///|
 fn handle_request(state : ServerState, request : Request) -> Response {
@@ -68,26 +68,26 @@ fn handle_request(state : ServerState, request : Request) -> Response {
 }
 
 ///|
-async fn do_backup[Backup : @moonchor.Location](
+async fn[Backup : @moonchor.Location] do_backup(
   ctx : @moonchor.ChoreoContext,
   request_at_server : @moonchor.Located[Request, Server],
   backup : Backup,
   state_at_backup : @moonchor.Located[ServerState, Backup]
 ) -> @moonchor.Located[Response, Server] {
-  let request_at_backup = ctx.comm!(server, backup, request_at_server)
+  let request_at_backup = ctx.comm(server, backup, request_at_server)
   let response_at_backup = ctx.locally(backup, fn(unwrapper) {
     let request = unwrapper.unwrap(request_at_backup)
     let state = unwrapper.unwrap(state_at_backup)
     handle_request(state, request)
   })
-  ctx.comm!(backup, server, response_at_backup)
+  ctx.comm(backup, server, response_at_backup)
 }
 
 ///|
-typealias ReplicationStrategy = (
-  @moonchor.ChoreoContext,
-  @moonchor.Located[Request, Server],
-) -> @moonchor.Located[Response, Server]!Async
+typealias async (@moonchor.ChoreoContext, @moonchor.Located[Request, Server]) -> @moonchor.Located[
+  Response,
+  Server,
+] as ReplicationStrategy
 
 ///|
 async fn double_replication_strategy(
@@ -99,8 +99,8 @@ async fn double_replication_strategy(
     ctx : @moonchor.ChoreoContext,
     request_at_server : @moonchor.Located[Request, Server]
   ) {
-    let res1 = do_backup!(ctx, request_at_server, backup1, state_at_backup1)
-    let res2 = do_backup!(ctx, request_at_server, backup2, state_at_backup2)
+    let res1 = do_backup(ctx, request_at_server, backup1, state_at_backup1)
+    let res2 = do_backup(ctx, request_at_server, backup2, state_at_backup2)
     ctx.locally(server, fn(unwrapper) {
       let request = unwrapper.unwrap(request_at_server)
       let state = unwrapper.unwrap(state_at_server)
@@ -131,9 +131,9 @@ async fn access_server(
   request : @moonchor.Located[Request, Client],
   strategy : ReplicationStrategy
 ) -> @moonchor.Located[Response, Client] {
-  let request_at_server = ctx.comm!(client, server, request)
-  let response = strategy!(ctx, request_at_server)
-  ctx.comm!(server, client, response)
+  let request_at_server = ctx.comm(client, server, request)
+  let response = strategy(ctx, request_at_server)
+  ctx.comm(server, client, response)
 }
 
 ///|
@@ -144,7 +144,7 @@ async fn put(
   value : Int
 ) -> Unit {
   let request = ctx.locally(client, fn(_unwrapper) { Request::Put(key, value) })
-  access_server!(ctx, request, strategy) |> ignore
+  access_server(ctx, request, strategy) |> ignore
 }
 
 ///|
@@ -154,7 +154,7 @@ async fn get(
   key : String
 ) -> @moonchor.Located[Response, Client] {
   let request = ctx.locally(client, fn(_unwrapper) { Request::Get(key) })
-  access_server!(ctx, request, strategy)
+  access_server(ctx, request, strategy)
 }
 
 ///|
@@ -171,13 +171,13 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
   let state_at_backup2 = ctx.locally(backup2, fn(_unwrapper) {
     ServerState::{ db: {} }
   })
-  let strategy = double_replication_strategy!(
+  let strategy = double_replication_strategy(
     state_at_server, state_at_backup1, state_at_backup2,
   )
-  put!(ctx, strategy, "key1", 42)
-  put!(ctx, strategy, "key2", 41)
-  let v1_at_client = get!(ctx, strategy, "key1")
-  let v2_at_client = get!(ctx, strategy, "key2")
+  put(ctx, strategy, "key1", 42)
+  put(ctx, strategy, "key2", 41)
+  let v1_at_client = get(ctx, strategy, "key1")
+  let v2_at_client = get(ctx, strategy, "key2")
   ctx.locally(client, fn(unwrapper) {
     let v1 = unwrapper.unwrap(v1_at_client).unwrap()
     let v2 = unwrapper.unwrap(v2_at_client).unwrap()
@@ -194,8 +194,8 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
 ///|
 test "kvstore 4.0" {
   let backend = @moonchor.make_local_backend([server, client, backup1, backup2])
-  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, kvstore, server) })
-  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, kvstore, client) })
-  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, kvstore, backup1) })
-  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, kvstore, backup2) })
+  @tlk.run_async(async fn() { @moonchor.run_choreo(backend, kvstore, server) })
+  @tlk.run_async(async fn() { @moonchor.run_choreo(backend, kvstore, client) })
+  @tlk.run_async(async fn() { @moonchor.run_choreo(backend, kvstore, backup1) })
+  @tlk.run_async(async fn() { @moonchor.run_choreo(backend, kvstore, backup2) })
 }

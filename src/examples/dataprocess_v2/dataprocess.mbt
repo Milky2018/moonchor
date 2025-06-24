@@ -68,19 +68,19 @@ fn load_data() -> Array[Int] {
 }
 
 ///|
-async fn remote_task[In : @moonchor.Message, Out : @moonchor.Message](
+async fn[In : @moonchor.Message, Out : @moonchor.Message] remote_task(
   ctx : @moonchor.ChoreoContext,
   worker : Worker,
   arg : @moonchor.Located[In, Manager],
   task : (In) -> Out
 ) -> @moonchor.Located[Out, Manager] {
-  let data_piece_at_worker = ctx.comm!(manager, worker, arg)
+  let data_piece_at_worker = ctx.comm(manager, worker, arg)
   let result_at_worker = ctx.locally(worker, fn(unwrapper) {
     let data_piece = unwrapper.unwrap(data_piece_at_worker)
     println("Processing data at \{worker.name()}")
     task(data_piece)
   })
-  ctx.comm!(worker, manager, result_at_worker)
+  ctx.comm(worker, manager, result_at_worker)
 }
 
 ///|
@@ -92,7 +92,7 @@ async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
   let mut data_is_empty = ctx.locally(manager, fn(unwrapper) {
     unwrapper.unwrap(data_at_manager).is_empty()
   })
-  while not(ctx.broadcast!(manager, data_is_empty)) {
+  while not(ctx.broadcast(manager, data_is_empty)) {
     let data_piece_at_manager = ctx.locally(manager, fn(unwrapper) {
       unwrapper.unwrap(data_at_manager).pop().unwrap()
     })
@@ -102,8 +102,8 @@ async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
       let idx = counter % workers.length()
       workers[idx]
     })
-    let worker = ctx.broadcast!(manager, worker_at_manager)
-    let result_at_manager = remote_task!(
+    let worker = ctx.broadcast(manager, worker_at_manager)
+    let result_at_manager = remote_task(
       ctx, worker, data_piece_at_manager, data_process_stage,
     )
     ctx.locally(manager, fn(unwrapper) {
@@ -135,11 +135,11 @@ test "data_process 2.0" {
     manager, worker1, worker2, worker3, worker4,
   ])
   @tlk.run_async(async fn() {
-    @moonchor.run_choreo!(backend, data_process, manager)
+    @moonchor.run_choreo(backend, data_process, manager)
   })
   for worker in workers {
     @tlk.run_async(async fn() {
-      @moonchor.run_choreo!(backend, data_process, worker)
+      @moonchor.run_choreo(backend, data_process, worker)
     })
   }
 }

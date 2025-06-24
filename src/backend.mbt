@@ -1,20 +1,24 @@
 ///|
 enum Backend {
-  Local(Map[&Location, @guardch.GuardChannel[(Array[Int], Json)]], &Logger)
+  Local(
+    Array[&Location],
+    Map[(&Location, &Location), @channel.T[Json]],
+    &Logger
+  )
   // HttpConfig
 }
 
 ///|
 pub fn get_logger(self : Backend) -> &Logger {
   match self {
-    Local(_, logger) => logger
+    Local(_, _, logger) => logger
   }
 }
 
 ///|
 pub fn get_locations(self : Backend) -> Array[&Location] {
   match self {
-    Local(channels, _) => channels.keys().to_array()
+    Local(locations, _, _) => locations
   }
 }
 
@@ -24,45 +28,53 @@ pub fn make_local_backend(
   logger~ : &Logger = make_mute_logger()
 ) -> Backend {
   let channels = {}
-  for location in locations {
-    channels[location] = @guardch.GuardChannel::new()
+  for from in locations {
+    for to in locations {
+      if from != to {
+        channels[(from, to)] = @channel.make()
+      }
+    }
   }
-  Local(channels, logger)
+  Local(locations, channels, logger)
 }
 
 ///|
-fn send[To : Location, T : Message](
+async fn[From : Location, To : Location, T : Message] send(
   self : Backend,
+  from : From,
   to : To,
-  msg : T,
-  id_list : Array[Int]
+  msg : T
 ) -> Unit {
   match self {
-    Local(channels, logger) => {
-      logger.info("|BACKEND|send(msg, \{to.name()})")
+    Local(_locations, channels, logger) => {
+      logger.info("|BACKEND|send(msg, \{from.name()}, \{to.name()})")
       let channel = channels
-        .get(to)
-        .or_else(fn() { @tlk.alert("Channel \{to.name()} not found") })
-      channel.send((id_list, msg.to_json()))
+        .get((from, to))
+        .or_else(fn() {
+          @tlk.alert("Channel (\{from.name()}}, \{to.name()}) not found")
+        })
+      channel.push(msg.to_json())
     }
   }
 }
 
 ///|
-async fn recv[To : Location, T : Message](
+async fn[From : Location, To : Location, T : Message] recv(
   self : Backend,
-  to : To,
-  id_list : Array[Int]
+  from : From,
+  to : To
 ) -> T {
   match self {
-    Local(channels, logger) => {
-      logger.info("|BACKEND|\{to.name()}.recv()")
+    Local(_locations, channels, logger) => {
+      logger.info("|BACKEND|\{to.name()}.recv(\{from.name()})")
       let channel = channels
-        .get(to)
-        .or_else(fn() { @tlk.alert("Channel \{to.name()} not found") })
-      let msg = channel.recv!(fn(target) { target.0 == id_list })
+        .get((from, to))
+        .or_else(fn() {
+          @tlk.alert("Channel (\{from.name()}, \{to.name()}) not found")
+        })
+      let msg = channel.pop()
       try {
-        let value = @json.from_json!(msg.1)
+        let value = @json.from_json(msg)
         return value
       } catch {
         _ => @tlk.alert("Bug: deserialzing JSON failed. " + CONTACT_AUTHOR)
@@ -76,12 +88,12 @@ async fn recv[To : Location, T : Message](
 struct Unwrapper[_] {}
 
 ///| Unwrap a located value.
-pub fn Unwrapper::unwrap[T, L](_ : Unwrapper[L], v : Located[T, L]) -> T {
+pub fn[T, L] Unwrapper::unwrap(_ : Unwrapper[L], v : Located[T, L]) -> T {
   v.unwrap()
 }
 
 ///|
-fn Backend::run[L : Location, T](
+fn[L : Location, T] Backend::run(
   self : Backend,
   loc : L,
   computation : (Unwrapper[L]) -> T
@@ -91,22 +103,3 @@ fn Backend::run[L : Location, T](
   let unwrapper = Unwrapper::{  }
   computation(unwrapper)
 }
-
-// fn Backend::register[L : Location](self : Backend, loc : L) -> Unit {
-//   match self {
-//     Local(channels, logger) => {
-//       logger.info("|BACKEND|Registering \{loc.name()}")
-//       let channel = 
-//       channels[loc] = channel
-//     }
-//   }
-// }
-
-// fn Backend::evict[L : Location](self : Backend, loc : L) -> Unit {
-//   match self {
-//     Local(channels, logger) => {
-//       logger.info("|BACKEND|Evicting \{loc.name()}")
-//       channels.remove(loc)
-//     }
-//   }
-// }

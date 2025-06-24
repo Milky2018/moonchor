@@ -43,7 +43,7 @@ priv enum Request {
 } derive(ToJson, FromJson)
 
 ///|
-typealias Response = Int?
+typealias Int? as Response
 
 ///|
 fn handle_request(state : ServerState, request : Request) -> Response {
@@ -63,26 +63,26 @@ async fn access_server(
   state_at_server : @moonchor.Located[ServerState, Server],
   state_at_backup : @moonchor.Located[ServerState, Backup]
 ) -> @moonchor.Located[Response, Client] {
-  let request_at_server = ctx.comm!(client, server, request)
+  let request_at_server = ctx.comm(client, server, request)
   let request_is_put = ctx.locally(server, fn(unwrapper) {
     let request = unwrapper.unwrap(request_at_server)
     request is Put(_, _)
   })
-  if ctx.broadcast!(server, request_is_put) {
-    let request_at_backup = ctx.comm!(server, backup, request_at_server)
+  if ctx.broadcast(server, request_is_put) {
+    let request_at_backup = ctx.comm(server, backup, request_at_server)
     let response_at_backup = ctx.locally(backup, fn(unwrapper) {
       let request = unwrapper.unwrap(request_at_backup)
       let state = unwrapper.unwrap(state_at_backup)
       handle_request(state, request)
     })
-    ctx.comm!(backup, server, response_at_backup) |> ignore
+    ctx.comm(backup, server, response_at_backup) |> ignore
   }
   let response = ctx.locally(server, fn(unwrapper) {
     let request = unwrapper.unwrap(request_at_server)
     let state = unwrapper.unwrap(state_at_server)
     handle_request(state, request)
   })
-  ctx.comm!(server, client, response)
+  ctx.comm(server, client, response)
 }
 
 ///|
@@ -94,7 +94,7 @@ async fn put(
   value : Int
 ) -> Unit {
   let request = ctx.locally(client, fn(_unwrapper) { Request::Put(key, value) })
-  access_server!(ctx, request, state_at_server, state_at_backup) |> ignore
+  access_server(ctx, request, state_at_server, state_at_backup) |> ignore
 }
 
 ///|
@@ -105,7 +105,7 @@ async fn get(
   key : String
 ) -> @moonchor.Located[Response, Client] {
   let request = ctx.locally(client, fn(_unwrapper) { Request::Get(key) })
-  access_server!(ctx, request, state_at_server, state_at_backup)
+  access_server(ctx, request, state_at_server, state_at_backup)
 }
 
 ///|
@@ -119,10 +119,10 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
   let state_at_backup = ctx.locally(backup, fn(_unwrapper) {
     ServerState::{ db: {} }
   })
-  put!(ctx, state_at_server, state_at_backup, "key1", 42)
-  put!(ctx, state_at_server, state_at_backup, "key2", 41)
-  let v1_at_client = get!(ctx, state_at_server, state_at_backup, "key1")
-  let v2_at_client = get!(ctx, state_at_server, state_at_backup, "key2")
+  put(ctx, state_at_server, state_at_backup, "key1", 42)
+  put(ctx, state_at_server, state_at_backup, "key2", 41)
+  let v1_at_client = get(ctx, state_at_server, state_at_backup, "key1")
+  let v2_at_client = get(ctx, state_at_server, state_at_backup, "key2")
   ctx.locally(client, fn(unwrapper) {
     let v1 = unwrapper.unwrap(v1_at_client).unwrap()
     let v2 = unwrapper.unwrap(v2_at_client).unwrap()
@@ -139,7 +139,7 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
 ///|
 test "kvstore 2.0" {
   let backend = @moonchor.make_local_backend([server, client, backup])
-  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, kvstore, server) })
-  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, kvstore, client) })
-  @tlk.run_async(async fn() { @moonchor.run_choreo!(backend, kvstore, backup) })
+  @tlk.run_async(async fn() { @moonchor.run_choreo(backend, kvstore, server) })
+  @tlk.run_async(async fn() { @moonchor.run_choreo(backend, kvstore, client) })
+  @tlk.run_async(async fn() { @moonchor.run_choreo(backend, kvstore, backup) })
 }
