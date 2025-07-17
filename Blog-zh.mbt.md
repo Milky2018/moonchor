@@ -104,13 +104,13 @@ async fn book_seller() -> Unit {
 使用协同式编程，我们可以将买家和卖家的逻辑写在**同一个函数**中，然后让它根据调用该函数时不同的参数表现出**不同的行为**。我们使用 moonchor 中的 API 来定义买家和卖家的角色。在 moonchor 中，角色被定义为 `trait Location`。为了提供更好的静态性质，角色不仅是值，同时还是一个独特的类型，该类型需要实现 `Location` 这个 trait。
 
 ```moonbit
-struct Buyer {} derive(Eq, Show, Hash)
+struct Buyer {} derive(Show, Hash)
 
 impl @moonchor.Location for Buyer with name(_) {
   "buyer"
 }
 
-struct Seller {} derive(Eq, Show, Hash)
+struct Seller {} derive(Show, Hash)
 
 impl @moonchor.Location for Seller with name(_) {
   "seller"
@@ -211,7 +211,7 @@ impl Eq for &Location with op_equal(self, other) {
 ```moonbit
 struct DynamicBuyer {
   id : String
-} derive(Eq, Show, Hash)
+} derive(Show, Hash)
 
 impl @moonchor.Location for DynamicBuyer with name(self) {
   "buyer-\{self.id}"
@@ -331,9 +331,9 @@ fn make_local_backend(locations : Array[&Location]) -> Backend {
 首先做一些准备工作，定义客户端 Client 和服务器 Server 两个角色：
 
 ```moonbit
-struct Server {} derive(Eq, Hash, Show)
+struct Server {} derive(Hash, Show)
 
-struct Client {} derive(Eq, Hash, Show)
+struct Client {} derive(Hash, Show)
 
 impl @moonchor.Location for Server with name(_) {
   "server"
@@ -470,7 +470,7 @@ test "kvstore v1" {
 我们为从副本构建一个新的角色：
 
 ```moonbit
-struct Backup {} derive(Eq, Hash, Show)
+struct Backup {} derive(Hash, Show)
 
 impl @moonchor.Location for Backup with name(_) {
   "backup"
@@ -690,7 +690,7 @@ test "kvstore 3.0" {
 如果要进一步实现新的复制策略，例如三副本，我们需要定义两个新的 Backup 类型以做区分：
 
 ```moonbit
-struct Backup1 {} derive(Eq, Hash, Show)
+struct Backup1 {} derive(Hash, Show)
 
 impl @moonchor.Location for Backup1 with name(_) {
   "backup1"
@@ -698,7 +698,7 @@ impl @moonchor.Location for Backup1 with name(_) {
 
 let backup1 : Backup1 = Backup1::{  }
 
-struct Backup2 {} derive(Eq, Hash, Show)
+struct Backup2 {} derive(Hash, Show)
 
 impl @moonchor.Location for Backup2 with name(_) {
   "backup2"
