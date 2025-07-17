@@ -1,5 +1,5 @@
 ///|
-priv struct Client {} derive(Eq, Show, Hash)
+priv struct Client {} derive(Show, Hash)
 
 ///|
 priv struct ClientState {

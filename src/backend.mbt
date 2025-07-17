@@ -50,7 +50,7 @@ async fn[From : Location, To : Location, T : Message] send(
       logger.info("|BACKEND|send(msg, \{from.name()}, \{to.name()})")
       let channel = channels
         .get((from, to))
-        .or_else(fn() {
+        .unwrap_or_else(fn() {
           @tlk.alert("Channel (\{from.name()}}, \{to.name()}) not found")
         })
       channel.push(msg.to_json())
@@ -69,7 +69,7 @@ async fn[From : Location, To : Location, T : Message] recv(
       logger.info("|BACKEND|\{to.name()}.recv(\{from.name()})")
       let channel = channels
         .get((from, to))
-        .or_else(fn() {
+        .unwrap_or_else(fn() {
           @tlk.alert("Channel (\{from.name()}, \{to.name()}) not found")
         })
       let msg = channel.pop()

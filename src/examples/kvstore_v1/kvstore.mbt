@@ -1,8 +1,8 @@
 ///|
-priv struct Server {} derive(Eq, Hash, Show)
+priv struct Server {} derive(Hash, Show)
 
 ///|
-priv struct Client {} derive(Eq, Hash, Show)
+priv struct Client {} derive(Hash, Show)
 
 ///|
 impl @moonchor.Location for Server with name(_) {

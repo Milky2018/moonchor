@@ -1,5 +1,5 @@
 ///|
-priv struct Alice {} derive(Eq, Show, Hash)
+priv struct Alice {} derive(Show, Hash)
 
 ///|
 impl @moonchor.Location for Alice with name(_) {
@@ -7,7 +7,7 @@ impl @moonchor.Location for Alice with name(_) {
 }
 
 ///|
-priv struct Bob {} derive(Eq, Show, Hash)
+priv struct Bob {} derive(Show, Hash)
 
 ///|
 impl @moonchor.Location for Bob with name(_) {
@@ -15,7 +15,7 @@ impl @moonchor.Location for Bob with name(_) {
 }
 
 ///|
-priv struct Carol {} derive(Eq, Show, Hash)
+priv struct Carol {} derive(Show, Hash)
 
 ///|
 impl @moonchor.Location for Carol with name(_) {
@@ -23,7 +23,7 @@ impl @moonchor.Location for Carol with name(_) {
 }
 
 ///|
-priv struct Dummy {} derive(Eq, Show, Hash)
+priv struct Dummy {} derive(Show, Hash)
 
 ///|
 impl @moonchor.Location for Dummy with name(_) {

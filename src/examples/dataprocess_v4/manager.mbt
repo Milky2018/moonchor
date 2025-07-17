@@ -1,5 +1,5 @@
 ///|
-priv struct Manager {} derive(Eq, Show, Hash)
+priv struct Manager {} derive(Show, Hash)
 
 ///|
 impl @moonchor.Location for Manager with name(_) {

@@ -1,5 +1,5 @@
 ///|
-priv struct Manager {} derive(Eq, Show, Hash)
+priv struct Manager {} derive(Show, Hash)
 
 ///|
 impl @moonchor.Location for Manager with name(_) {
@@ -9,7 +9,7 @@ impl @moonchor.Location for Manager with name(_) {
 ///|
 priv struct Worker {
   id : String
-} derive(Eq, Show, Hash, ToJson, FromJson)
+} derive(Show, Hash, ToJson, FromJson)
 
 ///|
 impl @moonchor.Location for Worker with name(self) {

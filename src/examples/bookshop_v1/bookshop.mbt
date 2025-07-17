@@ -1,5 +1,5 @@
 ///|
-priv struct Buyer {} derive(Eq, Show, Hash)
+priv struct Buyer {} derive(Show, Hash)
 
 ///|
 impl @moonchor.Location for Buyer with name(_) {
@@ -10,7 +10,7 @@ impl @moonchor.Location for Buyer with name(_) {
 let buyer : Buyer = Buyer::{  }
 
 ///|
-priv struct Seller {} derive(Eq, Show, Hash)
+priv struct Seller {} derive(Show, Hash)
 
 ///|
 impl @moonchor.Location for Seller with name(_) {

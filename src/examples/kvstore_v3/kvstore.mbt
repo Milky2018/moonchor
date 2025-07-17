@@ -1,5 +1,5 @@
 ///|
-priv struct Server {} derive(Eq, Hash, Show)
+priv struct Server {} derive(Hash, Show)
 
 ///|
 impl @moonchor.Location for Server with name(_) {
@@ -10,7 +10,7 @@ impl @moonchor.Location for Server with name(_) {
 let server : Server = Server::{  }
 
 ///|
-priv struct Client {} derive(Eq, Hash, Show)
+priv struct Client {} derive(Hash, Show)
 
 ///|
 impl @moonchor.Location for Client with name(_) {
@@ -21,7 +21,7 @@ impl @moonchor.Location for Client with name(_) {
 let client : Client = Client::{  }
 
 ///|
-priv struct Backup {} derive(Eq, Hash, Show)
+priv struct Backup {} derive(Hash, Show)
 
 ///|
 impl @moonchor.Location for Backup with name(_) {
@@ -40,7 +40,7 @@ priv struct ServerState {
 priv enum Request {
   Get(String)
   Put(String, Int)
-} derive(ToJson, FromJson, Show)
+} derive(ToJson, FromJson)
 
 ///|
 typealias Int? as Response
