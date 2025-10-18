@@ -2,7 +2,6 @@
 title: "MoonBit Pearls: Choreographic Programming with Moonchor"
 moonbit:
   deps:
-    Milky2018/toolkit: 0.1.4
     Milky2018/moonchor: 0.15.0
   backend:
     wasm-gc
@@ -805,4 +804,4 @@ With this, we've completed the multi-replica KVStore implementation. Throughout 
 
 # Conclusion
 
-In this article, we've explored the elegance of choreographic programming through moonchor while witnessing MoonBit's powerful expressiveness. For deeper insights into choreographic programming, you may refer to Haskell's library [HasChor](https://github.com/gshen42/HasChor), the [Choral language](https://www.choral-lang.org), or [moonchor 的源码](https://github.com/Milky2018/moonchor). To try moonchor yourself, simply install it via the command `moon add Milky2018/moonchor@0.15.0`.
+In this article, we've explored the elegance of choreographic programming through moonchor while witnessing MoonBit's powerful expressiveness. For deeper insights into choreographic programming, you may refer to Haskell's library [HasChor](https://github.com/gshen42/HasChor), the [Choral language](https://www.choral-lang.org), or [moonchor source code](https://github.com/Milky2018/moonchor). To try moonchor yourself, simply install it via the command `moon add Milky2018/moonchor@0.15.0`.

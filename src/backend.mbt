@@ -2,7 +2,7 @@
 enum Backend {
   Local(
     Array[&Location],
-    Map[(&Location, &Location), @channel.T[Json]],
+    Map[(&Location, &Location), @aqueue.Queue[Json]],
     &Logger
   )
   // HttpConfig
@@ -25,13 +25,13 @@ pub fn get_locations(self : Backend) -> Array[&Location] {
 ///|
 pub fn make_local_backend(
   locations : Array[&Location],
-  logger~ : &Logger = make_mute_logger()
+  logger? : &Logger = make_mute_logger(),
 ) -> Backend {
   let channels = {}
   for from in locations {
     for to in locations {
       if from != to {
-        channels[(from, to)] = @channel.make()
+        channels[(from, to)] = @aqueue.Queue::new()
       }
     }
   }
@@ -43,7 +43,7 @@ async fn[From : Location, To : Location, T : Message] send(
   self : Backend,
   from : From,
   to : To,
-  msg : T
+  msg : T,
 ) -> Unit {
   match self {
     Local(_locations, channels, logger) => {
@@ -51,9 +51,9 @@ async fn[From : Location, To : Location, T : Message] send(
       let channel = channels
         .get((from, to))
         .unwrap_or_else(fn() {
-          @tlk.alert("Channel (\{from.name()}}, \{to.name()}) not found")
+          abort("Channel (\{from.name()}}, \{to.name()}) not found")
         })
-      channel.push(msg.to_json())
+      channel.put(msg.to_json())
     }
   }
 }
@@ -62,7 +62,7 @@ async fn[From : Location, To : Location, T : Message] send(
 async fn[From : Location, To : Location, T : Message] recv(
   self : Backend,
   from : From,
-  to : To
+  to : To,
 ) -> T {
   match self {
     Local(_locations, channels, logger) => {
@@ -70,24 +70,26 @@ async fn[From : Location, To : Location, T : Message] recv(
       let channel = channels
         .get((from, to))
         .unwrap_or_else(fn() {
-          @tlk.alert("Channel (\{from.name()}, \{to.name()}) not found")
+          abort("Channel (\{from.name()}, \{to.name()}) not found")
         })
-      let msg = channel.pop()
+      let msg = channel.get()
       try {
         let value = @json.from_json(msg)
         return value
       } catch {
-        _ => @tlk.alert("Bug: deserialzing JSON failed. " + CONTACT_AUTHOR)
+        _ => abort("Bug: deserialzing JSON failed. " + CONTACT_AUTHOR)
       }
     }
   }
 }
 
-///| The unwrapper is used to unwrap located values in the computation.
+///|
+/// The unwrapper is used to unwrap located values in the computation.
 /// It is passed to the computation function as the only argument.
 struct Unwrapper[_] {}
 
-///| Unwrap a located value.
+///|
+/// Unwrap a located value.
 pub fn[T, L] Unwrapper::unwrap(_ : Unwrapper[L], v : Located[T, L]) -> T {
   v.unwrap()
 }
@@ -96,7 +98,7 @@ pub fn[T, L] Unwrapper::unwrap(_ : Unwrapper[L], v : Located[T, L]) -> T {
 fn[L : Location, T] Backend::run(
   self : Backend,
   loc : L,
-  computation : (Unwrapper[L]) -> T
+  computation : (Unwrapper[L]) -> T,
 ) -> T {
   let logger = self.get_logger()
   logger.info("|BACKEND|\{loc.name()}.run(computation)")

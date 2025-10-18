@@ -1,0 +1,17 @@
+{
+  "name": "moonbitlang/moonchor/examples",
+  "version": "0.1.0",
+  "deps": {
+    "moonbitlang/async": "0.9.0",
+    "Milky2018/moonchor": {
+      "path": ".."
+    }
+  },
+  "readme": "README.md",
+  "repository": "https://github.com/moonbitlang/moonchor",
+  "license": "Apache-2.0",
+  "keywords": [],
+  "description": "Examples for `moonbitlang/moonchor`",
+  "source": ".",
+  "preferred-target": "native"
+}

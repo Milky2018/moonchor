@@ -13,20 +13,22 @@ fn ChoreoContext::new(backend : Backend, role : &Location) -> ChoreoContext {
   ChoreoContext::{ role, locations, backend, logger }
 }
 
-///| Choreography type.
+///|
+/// Choreography type.
 pub typealias async (ChoreoContext) -> T as Choreo[T]
 
-///| Run a choreography in the given location and backend.
+///|
+/// Run a choreography in the given location and backend.
 /// Default logger is the backend logger.
 pub async fn[T, L : Location] run_choreo(
   backend : Backend,
   choreography : Choreo[T],
-  role : L
+  role : L,
 ) -> T {
   let context = ChoreoContext::new(backend, role)
   let locations = context.locations
   if not(locations.contains(role)) {
-    @tlk.alert(
+    abort(
       "Bug: location " + role.name() + " is not registered. " + CONTACT_AUTHOR,
     )
   }
@@ -36,7 +38,7 @@ pub async fn[T, L : Location] run_choreo(
 ///|
 fn[L : Location] check_location(self : ChoreoContext, location : L) -> Unit {
   if not(self.locations.contains(location)) {
-    @tlk.alert(
+    abort(
       "Bug: location " +
       location.name() +
       " is out of enclave. " +
@@ -45,11 +47,12 @@ fn[L : Location] check_location(self : ChoreoContext, location : L) -> Unit {
   }
 }
 
-///| Local computation at the given location.
+///|
+/// Local computation at the given location.
 pub fn[T, L : Location] locally(
   self : ChoreoContext,
   location : L,
-  computation : (Unwrapper[L]) -> T
+  computation : (Unwrapper[L]) -> T,
 ) -> Located[T, L] {
   self.check_location(location)
   self.logger.info("|CHOREO|LOCAL computation at \{location.name()}")
@@ -61,18 +64,19 @@ pub fn[T, L : Location] locally(
   }
 }
 
-///| Communication between two locations.
+///|
+/// Communication between two locations.
 pub async fn[T : Message, From : Location, To : Location] comm(
   self : ChoreoContext,
   from : From,
   to : To,
-  value : Located[T, From]
+  value : Located[T, From],
 ) -> Located[T, To] {
   self.check_location(from)
   self.check_location(to)
   self.logger.info("|CHOREO|COMM message from \{from.name()} to \{to.name()}")
   if (from as &Location) == to {
-    @tlk.alert("Sending a message to the same location. ")
+    abort("Sending a message to the same location. ")
   }
   if self.role == from {
     self.backend.send(from, to, value.unwrap())
@@ -84,11 +88,12 @@ pub async fn[T : Message, From : Location, To : Location] comm(
   }
 }
 
-///| Broadcast a message to all locations.
+///|
+/// Broadcast a message to all locations.
 pub async fn[T : Message, L : Location] ChoreoContext::broadcast(
   self : ChoreoContext,
   loc : L,
-  value : Located[T, L]
+  value : Located[T, L],
 ) -> T {
   self.check_location(loc)
   let to_info = self.locations
@@ -107,29 +112,31 @@ pub async fn[T : Message, L : Location] ChoreoContext::broadcast(
   } else if self.locations.contains(loc) {
     self.backend.recv(loc, self.role)
   } else {
-    @tlk.alert(
+    abort(
       "Broadcast target is not in the enclave. This should never happen. " +
       CONTACT_AUTHOR,
     )
   }
 }
 
-///| Locally compute and then broadcast the result.
+///|
+/// Locally compute and then broadcast the result.
 pub async fn[T : Message, L : Location] ChoreoContext::locally_broadcast(
   self : ChoreoContext,
   loc : L,
-  computation : (Unwrapper[L]) -> T
+  computation : (Unwrapper[L]) -> T,
 ) -> T {
   let located_value = self.locally(loc, computation)
   self.broadcast(loc, located_value)
 }
 
-///| Make an enclave with a subchoreography where `broadcast` will
+///|
+/// Make an enclave with a subchoreography where `broadcast` will
 /// only spread to the given locations.
 pub async fn ChoreoContext::enclave(
   self : ChoreoContext,
   locations : Array[&Location],
-  subchoreo : Choreo[Unit]
+  subchoreo : Choreo[Unit],
 ) -> Unit {
   if not(locations.contains(self.role)) {
     return
@@ -148,14 +155,15 @@ pub async fn ChoreoContext::enclave(
   subchoreo(context)
 }
 
-///| Announce a located value to all locations in the given array. 
+///|
+/// Announce a located value to all locations in the given array. 
 /// This operation takes a subchoreography as an argument.
 pub async fn[T : Message, L : Location] ChoreoContext::announce(
   self : ChoreoContext,
   loc : L,
   targets : Array[&Location],
   located_value : Located[T, L],
-  subchoreo : async (ChoreoContext, T) -> Unit
+  subchoreo : async (ChoreoContext, T) -> Unit,
 ) -> Unit {
   self.enclave(targets + [loc], fn(ctx) {
     let value = ctx.broadcast(loc, located_value)

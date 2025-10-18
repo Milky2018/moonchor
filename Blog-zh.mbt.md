@@ -2,7 +2,6 @@
 title: "MoonBit Pearls: Choreographic Programming with Moonchor"
 moonbit:
   deps:
-    Milky2018/toolkit: 0.1.4
     Milky2018/moonchor: 0.15.0
   backend:
     wasm-gc

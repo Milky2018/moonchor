@@ -1,9 +1,8 @@
 {
   "import": [
-    "peter-jerry-ye/async/channel",
-    {
-      "path": "Milky2018/toolkit",
-      "alias": "tlk"
-    }
+    "moonbitlang/async/aqueue"
+  ],
+  "overrides": [
+    "moonbitlang/dummy_abort/abort_show_msg"
   ]
 }

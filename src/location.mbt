@@ -1,13 +1,15 @@
-///| Represents a value located at a specific location.
+///|
+/// Represents a value located at a specific location.
 enum Located[T, _] {
   Present(T)
   Absent
 }
 
-///| Mapping a located value
+///|
+/// Mapping a located value
 pub fn[T, L, R] Located::map(
   self : Located[T, L],
-  f : (T) -> R
+  f : (T) -> R,
 ) -> Located[R, L] {
   match self {
     Located::Present(t) => Located::Present(f(t))
@@ -15,12 +17,12 @@ pub fn[T, L, R] Located::map(
   }
 }
 
-///| 
+///|
 fn[T, L] Located::unwrap(self : Located[T, L]) -> T {
   match self {
     Located::Present(t) => t
     Located::Absent =>
-      @tlk.alert(
+      abort(
         "Bug: unwrapping an empty value. This should never happen. " +
         CONTACT_AUTHOR,
       )
@@ -33,6 +35,6 @@ pub(open) trait Location: Show + Hash {
 }
 
 ///|
-impl Eq for &Location with op_equal(self, other) {
+impl Eq for &Location with equal(self, other) {
   self.name() == other.name()
 }
