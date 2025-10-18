@@ -3,8 +3,9 @@ title: "MoonBit Pearls: Choreographic Programming with Moonchor"
 moonbit:
   deps:
     Milky2018/moonchor: 0.15.0
+    moonbitlang/async: 0.9.0
   backend:
-    wasm-gc
+    native
 ---
 
 传统的分布式程序设计是非常痛苦的，其中一个重要的因素是，很多整体的逻辑需要拆散到各个分布式节点中实现，分散的实现使得程序难以调试、难以理解，并且无法享用编程语言提供的类型检查能力。Choreographic Programming，即协同式编程，提供了一种整体的视角，允许开发者编写需要多个参与者协同工作的单一程序，然后将这个整体程序分别投射到各个参与者，最终实现协同工作的效果。
@@ -174,7 +175,7 @@ async fn bookshop(ctx : @moonchor.ChoreoContext) -> Unit {
 这样一个 choreography 怎样运行呢？moonchor 提供了 `run_choreo` 函数来启动一个 choreography。目前，由于 MoonBit 的多后端特性，提供稳定的、可移植的 TCP 服务器和跨进程通信接口是一项挑战，因此我们将使用协程和通道来探寻 choreography 的真正运行过程。完整的启动代码如下：
 
 ```moonbit
-test "Blog: bookshop" {
+async test "Blog: bookshop" {
   let backend = @moonchor.make_local_backend([buyer, seller])
   @toolkit.run_async(() => @moonchor.run_choreo(backend, bookshop, buyer) )
   @toolkit.run_async(() => @moonchor.run_choreo(backend, bookshop, seller) )
