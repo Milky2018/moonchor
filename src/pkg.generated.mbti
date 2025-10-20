@@ -2,11 +2,15 @@
 package "Milky2018/moonchor"
 
 import(
+  "moonbitlang/async"
+  "moonbitlang/async/socket"
   "moonbitlang/core/json"
 )
 
 // Values
 fn make_console_logger() -> ConsoleLogger
+
+fn make_http_backend(Array[(&Location, @socket.Addr)], @async.TaskGroup[Unit], logger? : &Logger) -> Backend
 
 fn make_local_backend(Array[&Location], logger? : &Logger) -> Backend
 
@@ -20,6 +24,7 @@ async fn[T, L : Location] run_choreo(Backend, async (ChoreoContext) -> T, L) -> 
 type Backend
 fn Backend::get_locations(Self) -> Array[&Location]
 fn Backend::get_logger(Self) -> &Logger
+async fn[L : Location] Backend::init_at(Self, L) -> Unit
 
 type ChoreoContext
 async fn[T : Message, L : Location] ChoreoContext::announce(Self, L, Array[&Location], Located[T, L], async (Self, T) -> Unit) -> Unit
