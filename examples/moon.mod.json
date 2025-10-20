@@ -5,7 +5,8 @@
     "moonbitlang/async": "0.9.0",
     "Milky2018/moonchor": {
       "path": ".."
-    }
+    },
+    "moonbitlang/x": "0.4.34"
   },
   "readme": "README.md",
   "repository": "https://github.com/moonbitlang/moonchor",

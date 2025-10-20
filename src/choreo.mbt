@@ -32,11 +32,15 @@ pub async fn[T, L : Location] run_choreo(
       "Bug: location " + role.name() + " is not registered. " + CONTACT_AUTHOR,
     )
   }
+  backend.init_at(role)
   choreography(context)
 }
 
 ///|
-fn[L : Location] check_location(self : ChoreoContext, location : L) -> Unit {
+fn[L : Location] ChoreoContext::check_location(
+  self : ChoreoContext,
+  location : L,
+) -> Unit {
   if not(self.locations.contains(location)) {
     abort(
       "Bug: location " +
@@ -49,7 +53,7 @@ fn[L : Location] check_location(self : ChoreoContext, location : L) -> Unit {
 
 ///|
 /// Local computation at the given location.
-pub fn[T, L : Location] locally(
+pub fn[T, L : Location] ChoreoContext::locally(
   self : ChoreoContext,
   location : L,
   computation : (Unwrapper[L]) -> T,
@@ -66,7 +70,7 @@ pub fn[T, L : Location] locally(
 
 ///|
 /// Communication between two locations.
-pub async fn[T : Message, From : Location, To : Location] comm(
+pub async fn[T : Message, From : Location, To : Location] ChoreoContext::comm(
   self : ChoreoContext,
   from : From,
   to : To,

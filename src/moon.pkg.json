@@ -1,6 +1,10 @@
 {
   "import": [
-    "moonbitlang/async/aqueue"
+    "moonbitlang/async/aqueue",
+    "moonbitlang/async/socket",
+    "moonbitlang/async/http",
+    "moonbitlang/async/io",
+    "moonbitlang/async"
   ],
   "overrides": [
     "moonbitlang/dummy_abort/abort_show_msg"

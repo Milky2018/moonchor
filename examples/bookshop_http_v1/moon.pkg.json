@@ -1,0 +1,9 @@
+{
+  "is-main": true,
+  "import": [
+    "Milky2018/moonchor",
+    "moonbitlang/x/sys",
+    "moonbitlang/async",
+    "moonbitlang/async/socket"
+  ]
+}
