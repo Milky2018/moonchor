@@ -53,10 +53,10 @@ fn[L : Location] ChoreoContext::check_location(
 
 ///|
 /// Local computation at the given location.
-pub fn[T, L : Location] ChoreoContext::locally(
+pub async fn[T, L : Location] ChoreoContext::locally(
   self : ChoreoContext,
   location : L,
-  computation : (Unwrapper[L]) -> T,
+  computation : async (Unwrapper[L]) -> T,
 ) -> Located[T, L] {
   self.check_location(location)
   self.logger.info("|CHOREO|LOCAL computation at \{location.name()}")
@@ -128,7 +128,7 @@ pub async fn[T : Message, L : Location] ChoreoContext::broadcast(
 pub async fn[T : Message, L : Location] ChoreoContext::locally_broadcast(
   self : ChoreoContext,
   loc : L,
-  computation : (Unwrapper[L]) -> T,
+  computation : async (Unwrapper[L]) -> T,
 ) -> T {
   let located_value = self.locally(loc, computation)
   self.broadcast(loc, located_value)

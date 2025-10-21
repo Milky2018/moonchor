@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/zhengyu/Documents/projects/moonchor/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

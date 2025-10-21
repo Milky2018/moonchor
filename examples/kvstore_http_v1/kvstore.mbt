@@ -1,4 +1,22 @@
 ///|
+fn ascii_to_string(ascii : BytesView) -> String {
+  let builder = StringBuilder::new()
+  for byte in ascii {
+    match byte {
+      '\n' => builder.write_char('\n')
+      '\r' => builder.write_string("\\r")
+      '\t' => builder.write_string("\\t")
+      32..=126 => builder.write_char(byte.to_int().unsafe_to_char())
+      x =>
+        builder
+        ..write_string("\\x")
+        ..write_string(x.to_int().to_string(radix=16))
+    }
+  }
+  builder.to_string()
+}
+
+///|
 priv struct Server {} derive(Hash, Show)
 
 ///|
@@ -51,13 +69,14 @@ priv struct ServerState {
 priv enum Request {
   Get(String)
   Put(String, Int)
-} derive(ToJson, FromJson)
+} derive(ToJson, FromJson, Show)
 
 ///|
 typealias Int? as Response
 
 ///|
 fn handle_request(state : ServerState, request : Request) -> Response {
+  println("Processing request: \{request}")
   match request {
     Request::Get(key) => state.db.get(key)
     Request::Put(key, value) => {
@@ -150,15 +169,16 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
   let strategy = double_replication_strategy(
     state_at_server, state_at_backup1, state_at_backup2,
   )
+  let stdin_reader = @io.BufferedReader::new(@pipe.stdin)
   for {
     let command_at_client = ctx.locally(client, fn(_unwrapper) {
-      let cmd = []
-      @readline.new().question("Input Command: ", fn(answer) {
-        let answer = answer.split(" ")
-        for arg in answer {
-          cmd.push(arg)
-        }
-      })
+      println("Your command: ")
+      let newline_pos = stdin_reader.find(b"\n")
+      let line_bytes = stdin_reader.read_exactly(newline_pos)
+      stdin_reader.drop(1)
+      let line = ascii_to_string(line_bytes)
+      let cmd = line.split(" ").collect()
+      guard cmd.length() > 1 else { return Request::Get("") }
       let key = cmd[1].to_string()
       match cmd[0].to_string() {
         "put" => Request::Put(key, try! @strconv.parse_int(cmd[2]))
@@ -169,7 +189,10 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
     let response_at_client = access_server(ctx, command_at_client, strategy)
     ctx.locally(client, fn(unwrapper) {
       let response = unwrapper.unwrap(response_at_client)
-      println(response)
+      match response {
+        None => println("ok")
+        Some(i) => println(i)
+      }
     })
     |> ignore
   }
@@ -180,10 +203,10 @@ async fn main {
   @async.with_task_group(fn(group) {
     let backend = @moonchor.make_http_backend(
       [
-        (server, @socket.Addr::parse("127.0.0.1:3050")),
-        (client, @socket.Addr::parse("127.0.0.1:3051")),
-        (backup1, @socket.Addr::parse("127.0.0.1:3052")),
-        (backup2, @socket.Addr::parse("127.0.0.1:3053")),
+        (server, @socket.Addr::parse("127.0.0.1:8080")),
+        (client, @socket.Addr::parse("127.0.0.1:8081")),
+        (backup1, @socket.Addr::parse("127.0.0.1:8082")),
+        (backup2, @socket.Addr::parse("127.0.0.1:8083")),
       ],
       group,
       // logger=@moonchor.make_console_logger(),
@@ -197,4 +220,12 @@ async fn main {
       _ => println("server, client, backup1, backup2")
     }
   })
+}
+
+///|
+test {
+  let data : Response = Some(1)
+  let json = data.to_json()
+  let msg : Response = @json.from_json(json)
+  println(msg)
 }

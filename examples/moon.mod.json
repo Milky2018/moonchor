@@ -6,8 +6,7 @@
     "Milky2018/moonchor": {
       "path": ".."
     },
-    "moonbitlang/x": "0.4.34",
-    "oboard/readline": "0.1.5"
+    "moonbitlang/x": "0.4.34"
   },
   "readme": "README.md",
   "repository": "https://github.com/moonbitlang/moonchor",

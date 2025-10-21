@@ -68,40 +68,40 @@ pub async fn[L : Location] Backend::init_at(self : Backend, role : L) -> Unit {
   match self {
     Local(_) => ()
     Http(_locations, addrs, mails, group, logger) => {
+      let oneshot = @aqueue.Queue::new()
       let addr = addrs
         .get(role)
         .unwrap_or_else(fn() { abort("Address for role: \{role} not found") })
       group.spawn_bg(allow_failure=true, fn() {
         try {
           let server = @socket.TCPServer::new(addr)
-          logger.info("|BACKEND_HTTP|TCP Server established")
+          logger.info("|BACKEND_HTTP|TCP Server established at \{addr}")
+          oneshot.put(())
           defer server.close()
           defer logger.info("|BACKEND_HTTP|TCP Server closing")
           for {
             let (conn, addr) = server.accept()
             logger.info("|BACKEND_HTTP|CONNECTION accepted from \{addr}")
             let conn = @http.ServerConnection::new(conn)
-            defer conn.close()
-            defer logger.info("|BACKEND_HTTP|CONNECTION closing")
             conn.read_request() |> ignore
             let data = conn.read_all()
             let json = data.json()
             let msg = json.value("msg").unwrap()
             let from = json.value("from").unwrap().as_string().unwrap()
             logger.info("|BACKEND_HTTP|TCP receive: \{msg} from \{from}")
+            conn..send_response(200, "Success")..end_response()
             mails
             .get(from)
             .unwrap_or_else(() => abort("No mail for location: \{from}"))
             .put(msg)
-            conn..send_response(200, "Success")..end_response()
+            logger.info("|BACKEND_HTTP|CONNECTION closing")
+            conn.close()
           }
         } catch {
-          e => {
-            logger.info("|BACKEND_HTTP|Error: \{e}")
-            raise e
-          }
+          e => abort("Error: \{e}")
         }
       })
+      oneshot.get() |> ignore
     }
   }
 }
@@ -124,11 +124,11 @@ async fn[From : Location, To : Location, T : Message] Backend::send(
       channel.put(msg.to_json())
     }
     Http(_locations, addrs, _mails, _group, logger) => {
-      logger.info("|BACKEND|send(msg, \{from.name()}, \{to.name()})")
       let addr = addrs
         .get(to)
         .unwrap_or_else(fn() { abort("Addr \{to.name()} not found") })
       let data : Json = { "from": from.name(), "msg": msg }
+      logger.info("|BACKEND|send \{data} to \{to.name()} (http://\{addr_ipstring(addr)})")
       let response = @http.post(
         "http://\{addr_ipstring(addr)}",
         data,
@@ -170,11 +170,13 @@ async fn[From : Location, To : Location, T : Message] Backend::recv(
       channel.get()
     }
     Http(_locations, _addrs, mails, _group, logger) => {
-      logger.info("|BACKEND|\{to.name()}.recv(\{from.name()})")
+      logger.info("|BACKEND_HTTP|\{to.name()}.recv(\{from.name()})")
       let mail = mails
         .get(from.name())
         .unwrap_or_else(fn() { abort("Mail \{from.name()} not found") })
-      mail.get()
+      let msg = mail.get()
+      logger.info("|BACKEND_HTTP|MSG: \{msg})")
+      msg
     }
   }
   try {
@@ -197,10 +199,10 @@ pub fn[T, L] Unwrapper::unwrap(_ : Unwrapper[L], v : Located[T, L]) -> T {
 }
 
 ///|
-fn[L : Location, T] Backend::run(
+async fn[L : Location, T] Backend::run(
   self : Backend,
   loc : L,
-  computation : (Unwrapper[L]) -> T,
+  computation : async (Unwrapper[L]) -> T,
 ) -> T {
   let logger = self.get_logger()
   logger.info("|BACKEND|\{loc.name()}.run(computation)")
