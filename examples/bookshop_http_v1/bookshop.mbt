@@ -81,7 +81,7 @@ async fn main {
         (seller, @socket.Addr::parse("127.0.0.1:3051")),
       ],
       group,
-      logger=@moonchor.make_console_logger(),
+      // logger=@moonchor.make_console_logger(),
     )
     let args = @sys.get_cli_args()
     match args.get(1) {

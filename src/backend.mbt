@@ -74,21 +74,21 @@ pub async fn[L : Location] Backend::init_at(self : Backend, role : L) -> Unit {
       group.spawn_bg(allow_failure=true, fn() {
         try {
           let server = @socket.TCPServer::new(addr)
-          logger.info("|Backend-http|TCP Server established")
+          logger.info("|BACKEND_HTTP|TCP Server established")
           defer server.close()
-          defer logger.info("|Backend-http|TCP Server closing")
+          defer logger.info("|BACKEND_HTTP|TCP Server closing")
           for {
             let (conn, addr) = server.accept()
-            logger.info("|Backend-http|CONNECTION accepted from \{addr}")
+            logger.info("|BACKEND_HTTP|CONNECTION accepted from \{addr}")
             let conn = @http.ServerConnection::new(conn)
             defer conn.close()
-            defer logger.info("|Backend-http|CONNECTION closing")
+            defer logger.info("|BACKEND_HTTP|CONNECTION closing")
             conn.read_request() |> ignore
             let data = conn.read_all()
             let json = data.json()
             let msg = json.value("msg").unwrap()
             let from = json.value("from").unwrap().as_string().unwrap()
-            logger.info("|Backend-http|TCP receive: \{msg} from \{from}")
+            logger.info("|BACKEND_HTTP|TCP receive: \{msg} from \{from}")
             mails
             .get(from)
             .unwrap_or_else(() => abort("No mail for location: \{from}"))
@@ -97,7 +97,7 @@ pub async fn[L : Location] Backend::init_at(self : Backend, role : L) -> Unit {
           }
         } catch {
           e => {
-            logger.info("|Backend-http|Error: \{e}")
+            logger.info("|BACKEND_HTTP|Error: \{e}")
             raise e
           }
         }

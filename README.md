@@ -62,10 +62,10 @@ run_choreo!(backend, simple_choreo, alice)
 # Todo
 
 - [x] README
-- [ ] HTTP backend
+- [x] HTTP backend
 - [x] Choice of knowledge
 - [x] Enclave
-- [ ] Location specific choreography
+- [ ] Logging update
 
 # Further Readings
 

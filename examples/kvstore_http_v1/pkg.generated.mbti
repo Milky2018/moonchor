@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/moonchor/examples/kvstore_v4"
+package "moonbitlang/moonchor/examples/kvstore_http_v1"
 
 // Values
 
