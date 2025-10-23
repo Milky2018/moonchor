@@ -75,8 +75,8 @@ priv enum Request {
 typealias Int? as Response
 
 ///|
-fn handle_request(state : ServerState, request : Request) -> Response {
-  println("Processing request: \{request}")
+async fn handle_request(state : ServerState, request : Request) -> Response {
+  @pipe.stdout.write("Processing request: \{request}\n")
   match request {
     Request::Get(key) => state.db.get(key)
     Request::Put(key, value) => {
@@ -172,7 +172,7 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
   let stdin_reader = @io.BufferedReader::new(@pipe.stdin)
   for {
     let command_at_client = ctx.locally(client, fn(_unwrapper) {
-      println("Your command: ")
+      @pipe.stdout.write("> ")
       let newline_pos = stdin_reader.find(b"\n")
       let line_bytes = stdin_reader.read_exactly(newline_pos)
       stdin_reader.drop(1)
@@ -190,8 +190,8 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
     ctx.locally(client, fn(unwrapper) {
       let response = unwrapper.unwrap(response_at_client)
       match response {
-        None => println("ok")
-        Some(i) => println(i)
+        None => @pipe.stdout.write("ok\n")
+        Some(i) => @pipe.stdout.write("\{i}\n")
       }
     })
     |> ignore
@@ -217,7 +217,7 @@ async fn main {
       Some("client") => @moonchor.run_choreo(backend, kvstore, client)
       Some("backup1") => @moonchor.run_choreo(backend, kvstore, backup1)
       Some("backup2") => @moonchor.run_choreo(backend, kvstore, backup2)
-      _ => println("server, client, backup1, backup2")
+      _ => @pipe.stdout.write("server, client, backup1, backup2\n")
     }
   })
 }
