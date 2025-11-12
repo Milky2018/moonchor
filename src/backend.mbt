@@ -184,14 +184,6 @@ pub fn[T, L] Unwrapper::unwrap(_ : Unwrapper[L], v : Located[T, L]) -> T {
 }
 
 ///|
-pub async fn[T, L] Unwrapper::unwrap_async(
-  _ : Unwrapper[L],
-  v : AsyncLocated[T, L],
-) -> T {
-  v.unwrap()
-}
-
-///|
 async fn[L : Location, T] Backend::run(
   self : Backend,
   loc : L,
@@ -200,4 +192,9 @@ async fn[L : Location, T] Backend::run(
   self.logger.info("|BACKEND|\{loc.name()}.run(computation)")
   let unwrapper = Unwrapper::{  }
   computation(unwrapper)
+}
+
+///|
+async fn[X] Backend::spawn(self : Backend, f : async () -> X) -> @async.Task[X] {
+  self.group.spawn(f)
 }
