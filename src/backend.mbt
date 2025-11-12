@@ -74,7 +74,7 @@ pub async fn[L : Location] Backend::init_at(self : Backend, role : L) -> Unit {
         .unwrap_or_else(fn() { abort("Address for role: \{role} not found") })
       group.spawn_bg(allow_failure=true, fn() {
         try {
-          let server = @socket.TCPServer::new(addr)
+          let server = @socket.TcpServer::new(addr)
           logger.info("|BACKEND_HTTP|TCP Server established at \{addr}")
           oneshot.put(())
           defer server.close()
@@ -128,7 +128,9 @@ async fn[From : Location, To : Location, T : Message] Backend::send(
         .get(to)
         .unwrap_or_else(fn() { abort("Addr \{to.name()} not found") })
       let data : Json = { "from": from.name(), "msg": msg }
-      logger.info("|BACKEND|send \{data} to \{to.name()} (http://\{addr_ipstring(addr)})")
+      logger.info(
+        "|BACKEND|send \{data} to \{to.name()} (http://\{addr_ipstring(addr)})",
+      )
       let response = @http.post(
         "http://\{addr_ipstring(addr)}",
         data,

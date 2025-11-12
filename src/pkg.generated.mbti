@@ -31,25 +31,23 @@ async fn[T : Message, L : Location] ChoreoContext::announce(Self, L, Array[&Loca
 async fn[T : Message, L : Location] ChoreoContext::broadcast(Self, L, Located[T, L]) -> T
 async fn[T : Message, From : Location, To : Location] ChoreoContext::comm(Self, From, To, Located[T, From]) -> Located[T, To]
 async fn ChoreoContext::enclave(Self, Array[&Location], async (Self) -> Unit) -> Unit
-fn[T, L : Location] ChoreoContext::locally(Self, L, (Unwrapper[L]) -> T) -> Located[T, L]
-async fn[T : Message, L : Location] ChoreoContext::locally_broadcast(Self, L, (Unwrapper[L]) -> T) -> T
+async fn[T, L : Location] ChoreoContext::locally(Self, L, async (Unwrapper[L]) -> T) -> Located[T, L]
+async fn[T : Message, L : Location] ChoreoContext::locally_broadcast(Self, L, async (Unwrapper[L]) -> T) -> T
 
 type ConsoleLogger
-fn ConsoleLogger::info(Self, String) -> Unit // from trait `Logger`
 impl Logger for ConsoleLogger
 
 type Located[T, _]
 fn[T, L, R] Located::map(Self[T, L], (T) -> R) -> Self[R, L]
 
 type MuteLogger
-fn MuteLogger::info(Self, String) -> Unit // from trait `Logger`
 impl Logger for MuteLogger
 
 type Unwrapper[_]
 fn[T, L] Unwrapper::unwrap(Self[L], Located[T, L]) -> T
 
 // Type aliases
-pub typealias async (ChoreoContext) -> T as Choreo[T]
+pub type Choreo[T] = async (ChoreoContext) -> T
 
 // Traits
 pub(open) trait Location : Show + Hash {

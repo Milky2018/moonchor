@@ -5,7 +5,7 @@
     "moonbitlang/x/sys",
     "moonbitlang/async",
     "moonbitlang/async/socket",
-    "moonbitlang/async/pipe",
+    "moonbitlang/async/stdio",
     "moonbitlang/async/io"
   ]
 }

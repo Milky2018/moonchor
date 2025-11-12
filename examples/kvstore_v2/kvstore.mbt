@@ -43,7 +43,7 @@ priv enum Request {
 } derive(ToJson, FromJson)
 
 ///|
-typealias Int? as Response
+type Response = Int?
 
 ///|
 fn handle_request(state : ServerState, request : Request) -> Response {

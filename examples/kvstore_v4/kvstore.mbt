@@ -54,7 +54,7 @@ priv enum Request {
 } derive(ToJson, FromJson)
 
 ///|
-typealias Int? as Response
+type Response = Int?
 
 ///|
 fn handle_request(state : ServerState, request : Request) -> Response {
@@ -84,10 +84,10 @@ async fn[Backup : @moonchor.Location] do_backup(
 }
 
 ///|
-typealias async (@moonchor.ChoreoContext, @moonchor.Located[Request, Server]) -> @moonchor.Located[
-  Response,
-  Server,
-] as ReplicationStrategy
+type ReplicationStrategy = async (
+  @moonchor.ChoreoContext,
+  @moonchor.Located[Request, Server],
+) -> @moonchor.Located[Response, Server]
 
 ///|
 async fn double_replication_strategy(

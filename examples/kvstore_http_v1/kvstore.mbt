@@ -72,11 +72,11 @@ priv enum Request {
 } derive(ToJson, FromJson, Show)
 
 ///|
-typealias Int? as Response
+type Response = Int?
 
 ///|
 async fn handle_request(state : ServerState, request : Request) -> Response {
-  @pipe.stdout.write("Processing request: \{request}\n")
+  @stdio.stdout.write("Processing request: \{request}\n")
   match request {
     Request::Get(key) => state.db.get(key)
     Request::Put(key, value) => {
@@ -103,10 +103,10 @@ async fn[Backup : @moonchor.Location] do_backup(
 }
 
 ///|
-typealias async (@moonchor.ChoreoContext, @moonchor.Located[Request, Server]) -> @moonchor.Located[
-  Response,
-  Server,
-] as ReplicationStrategy
+type ReplicationStrategy = async (
+  @moonchor.ChoreoContext,
+  @moonchor.Located[Request, Server],
+) -> @moonchor.Located[Response, Server]
 
 ///|
 async fn double_replication_strategy(
@@ -169,10 +169,10 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
   let strategy = double_replication_strategy(
     state_at_server, state_at_backup1, state_at_backup2,
   )
-  let stdin_reader = @io.BufferedReader::new(@pipe.stdin)
+  let stdin_reader = @io.BufferedReader::new(@stdio.stdin)
   for {
     let command_at_client = ctx.locally(client, fn(_unwrapper) {
-      @pipe.stdout.write("> ")
+      @stdio.stdout.write("> ")
       let newline_pos = stdin_reader.find(b"\n")
       let line_bytes = stdin_reader.read_exactly(newline_pos)
       stdin_reader.drop(1)
@@ -190,8 +190,8 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
     ctx.locally(client, fn(unwrapper) {
       let response = unwrapper.unwrap(response_at_client)
       match response {
-        None => @pipe.stdout.write("ok\n")
-        Some(i) => @pipe.stdout.write("\{i}\n")
+        None => @stdio.stdout.write("ok\n")
+        Some(i) => @stdio.stdout.write("\{i}\n")
       }
     })
     |> ignore
@@ -217,7 +217,7 @@ async fn main {
       Some("client") => @moonchor.run_choreo(backend, kvstore, client)
       Some("backup1") => @moonchor.run_choreo(backend, kvstore, backup1)
       Some("backup2") => @moonchor.run_choreo(backend, kvstore, backup2)
-      _ => @pipe.stdout.write("server, client, backup1, backup2\n")
+      _ => @stdio.stdout.write("server, client, backup1, backup2\n")
     }
   })
 }

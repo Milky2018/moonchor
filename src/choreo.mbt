@@ -15,7 +15,7 @@ fn ChoreoContext::new(backend : Backend, role : &Location) -> ChoreoContext {
 
 ///|
 /// Choreography type.
-pub typealias async (ChoreoContext) -> T as Choreo[T]
+pub type Choreo[T] = async (ChoreoContext) -> T
 
 ///|
 /// Run a choreography in the given location and backend.
