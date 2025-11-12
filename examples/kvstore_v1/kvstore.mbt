@@ -103,7 +103,7 @@ async fn kvstore(ctx : @moonchor.ChoreoContext) -> Unit {
 }
 
 ///|
-async fn main {
+async test {
   @async.with_task_group(fn(group) {
     let backend = @moonchor.make_local_backend([server, client], group)
     group.spawn_bg(() => @moonchor.run_choreo(backend, kvstore, server))

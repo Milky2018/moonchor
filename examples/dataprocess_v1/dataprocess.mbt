@@ -91,7 +91,7 @@ async fn data_process(ctx : @moonchor.ChoreoContext) -> Unit {
 }
 
 ///|
-async fn main {
+async test {
   // Should print:
   //   Processing data piece: 0 at worker1
   //   Processing data piece: 1 at worker2

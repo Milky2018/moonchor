@@ -66,6 +66,7 @@ run_choreo!(backend, simple_choreo, alice)
 - [x] Choice of knowledge
 - [x] Enclave
 - [ ] Logging update
+- [x] Async support
 
 # Further Readings
 

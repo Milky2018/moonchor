@@ -174,3 +174,12 @@ pub async fn[T : Message, L : Location] ChoreoContext::announce(
     subchoreo(ctx, value)
   })
 }
+
+///|
+/// Spawn an asynchronous task.
+pub async fn[X] ChoreoContext::spawn(
+  self : ChoreoContext,
+  f : async () -> X,
+) -> @async.Task[X] {
+  self.backend.spawn(f)
+}

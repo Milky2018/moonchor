@@ -65,7 +65,7 @@ async fn out_of_order(ctx : @moonchor.ChoreoContext) -> Unit {
 }
 
 ///|
-async fn main {
+async test {
   @async.with_task_group(fn(group) {
     let backend = @moonchor.make_local_backend(
       [alice, bob, carol, dummy],

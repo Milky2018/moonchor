@@ -73,7 +73,7 @@ async fn bookshop(ctx : @moonchor.ChoreoContext) -> Unit {
 }
 
 ///|
-async fn main {
+async test {
   // Should print: 
   //   I will sell the book
   //   The book will be delivered on 2025-10-01
