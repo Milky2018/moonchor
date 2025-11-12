@@ -8,8 +8,8 @@ struct ChoreoContext {
 
 ///|
 fn ChoreoContext::new(backend : Backend, role : &Location) -> ChoreoContext {
-  let locations = backend.get_locations()
-  let logger = backend.get_logger()
+  let locations = backend.locations
+  let logger = backend.logger
   ChoreoContext::{ role, locations, backend, logger }
 }
 

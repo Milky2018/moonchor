@@ -78,7 +78,7 @@ async fn main {
   //   I will sell the book
   //   The book will be delivered on 2025-10-01
   @async.with_task_group(fn(group) {
-    let backend = @moonchor.make_local_backend([buyer, seller])
+    let backend = @moonchor.make_local_backend([buyer, seller], group)
     group.spawn_bg(() => @moonchor.run_choreo(backend, bookshop, buyer))
     group.spawn_bg(() => @moonchor.run_choreo(backend, bookshop, seller))
   })

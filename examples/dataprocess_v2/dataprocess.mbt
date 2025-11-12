@@ -132,9 +132,10 @@ async fn main {
   //   Processing data at worker4
   //   Final results: [1, 2, 3, 4]
   @async.with_task_group(fn(group) {
-    let backend = @moonchor.make_local_backend([
-      manager, worker1, worker2, worker3, worker4,
-    ])
+    let backend = @moonchor.make_local_backend(
+      [manager, worker1, worker2, worker3, worker4],
+      group,
+    )
     group.spawn_bg(() => @moonchor.run_choreo(backend, data_process, manager))
     for worker in workers {
       group.spawn_bg(() => @moonchor.run_choreo(backend, data_process, worker))

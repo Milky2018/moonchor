@@ -86,7 +86,10 @@ async fn out_of_order(ctx : @moonchor.ChoreoContext) -> Unit {
 ///|
 async fn main {
   @async.with_task_group(fn(group) {
-    let backend = @moonchor.make_local_backend([alice, bob, carol, dummy])
+    let backend = @moonchor.make_local_backend(
+      [alice, bob, carol, dummy],
+      group,
+    )
     group.spawn_bg(() => @moonchor.run_choreo(backend, out_of_order, alice))
     group.spawn_bg(() => @moonchor.run_choreo(backend, out_of_order, bob))
     group.spawn_bg(() => @moonchor.run_choreo(backend, out_of_order, carol))
