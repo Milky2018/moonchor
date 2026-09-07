@@ -1,6 +1,6 @@
 name = "Milky2018/moonchor"
 
-version = "0.19.2"
+version = "0.19.1"
 
 import {
   "moonbitlang/async@0.21.2",
