@@ -31,10 +31,10 @@ fn[T, L] Located::unwrap(self : Located[T, L]) -> T {
 
 ///|
 pub(open) trait Location: Show + Hash {
-  name(Self) -> String
+  fn name(Self) -> String
 }
 
 ///|
-impl Eq for &Location with equal(self, other) {
+impl Eq for &Location with fn equal(self, other) {
   self.name() == other.name()
 }

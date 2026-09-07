@@ -18,15 +18,15 @@ pub fn make_local_backend(
   group : @async.TaskGroup[Unit],
   logger? : &Logger = make_mute_logger(),
 ) -> Backend {
-  let channels = {}
+  let channels = Map([])
   for from in locations {
     for to in locations {
       if from != to {
-        channels[(from, to)] = @aqueue.Queue::new()
+        channels[(from, to)] = @aqueue.Queue(kind=Unbounded)
       }
     }
   }
-  { locations, group, logger, messager: Local(channels) }
+  { locations, group, logger, messager: Local(channels), }
 }
 
 ///|
@@ -36,14 +36,14 @@ pub fn make_http_backend(
   logger? : &Logger = make_mute_logger(),
 ) -> Backend {
   let locations = []
-  let addrs = {}
-  let mails = {}
+  let addrs = Map([])
+  let mails = Map([])
   for loc in location_addrs {
     addrs[loc.0] = loc.1
-    mails[loc.0.name()] = @aqueue.Queue::new()
+    mails[loc.0.name()] = @aqueue.Queue(kind=Unbounded)
     locations.push(loc.0)
   }
-  { locations, logger, group, messager: Http(addrs, mails) }
+  { locations, logger, group, messager: Http(addrs, mails), }
 }
 
 ///|
@@ -51,28 +51,31 @@ pub async fn[L : Location] Backend::init_at(self : Backend, role : L) -> Unit {
   match self.messager {
     Local(_) => ()
     Http(addrs, mails) => {
-      let oneshot = @async.Queue::new()
+      let oneshot = @async.Queue(kind=Unbounded)
       let addr = addrs
         .get(role)
         .unwrap_or_else(fn() { abort("Address for role: \{role} not found") })
-      self.group.spawn_bg(allow_failure=true, fn() {
+      self.group.spawn_bg(allow_failure=true, async fn() {
         try {
-          let server = @socket.TcpServer::new(addr)
+          let server = @socket.TcpServer(addr)
           self.logger.info("|BACKEND_HTTP|TCP Server established at \{addr}")
           oneshot.put(())
           defer server.close()
           defer self.logger.info("|BACKEND_HTTP|TCP Server closing")
-          for {
+          while true {
             let (conn, addr) = server.accept()
             self.logger.info("|BACKEND_HTTP|CONNECTION accepted from \{addr}")
             let conn = @http.ServerConnection::new(conn)
             conn.read_request() |> ignore
             let data = conn.read_all()
             let json = data.json()
-            let msg = json.value("msg").unwrap()
-            let from = json.value("from").unwrap().as_string().unwrap()
-            self.logger.info("|BACKEND_HTTP|TCP receive: \{msg} from \{from}")
-            conn..send_response(200, "Success")..end_response()
+            guard! json is Object(fields)
+            let msg = fields.get("msg").unwrap()
+            guard! fields.get("from").unwrap() is String(from)
+            self.logger.info(
+              "|BACKEND_HTTP|TCP receive: \{Repr(msg)} from \{from}",
+            )
+            conn..send_response(200, "Success").end_response()
             mails
             .get(from)
             .unwrap_or_else(() => abort("No mail for location: \{from}"))
@@ -104,7 +107,7 @@ async fn[From : Location, To : Location, T : Message] Backend::send(
         .unwrap_or_else(fn() {
           abort("Channel (\{from.name()}}, \{to.name()}) not found")
         })
-      channel.put(msg.to_json())
+      channel.put(ToJson::to_json(msg))
     }
     Http(addrs, _mails) => {
       let addr = addrs
@@ -112,12 +115,11 @@ async fn[From : Location, To : Location, T : Message] Backend::send(
         .unwrap_or_else(fn() { abort("Addr \{to.name()} not found") })
       let data : Json = { "from": from.name(), "msg": msg }
       self.logger.info(
-        "|BACKEND|send \{data} to \{to.name()} (http://\{addr_ipstring(addr)})",
+        "|BACKEND|send \{Repr(data)} to \{to.name()} (http://\{addr_ipstring(addr)})",
       )
       let response = @http.post(
-        "http://\{addr_ipstring(addr)}",
+        "http://\{addr_ipstring(addr)}:\{addr.port()}",
         data,
-        port=addr.port(),
       )
       self.logger.info("|BACKEND|Response code: \{response.0.code}")
     }
@@ -127,7 +129,7 @@ async fn[From : Location, To : Location, T : Message] Backend::send(
 ///|
 fn addr_ipstring(addr : @socket.Addr) -> String {
   let ip = addr.ip()
-  StringBuilder::new()
+  StringBuilder()
   ..write_object(ip >> 24)
   ..write_char('.')
   ..write_object((ip >> 16) & 255)
@@ -160,7 +162,7 @@ async fn[From : Location, To : Location, T : Message] Backend::recv(
         .get(from.name())
         .unwrap_or_else(fn() { abort("Mail \{from.name()} not found") })
       let msg = mail.get()
-      self.logger.info("|BACKEND_HTTP|MSG: \{msg})")
+      self.logger.info("|BACKEND_HTTP|MSG: \{Repr(msg)})")
       msg
     }
   }
@@ -190,11 +192,11 @@ async fn[L : Location, T] Backend::run(
   computation : async (Unwrapper[L]) -> T,
 ) -> T {
   self.logger.info("|BACKEND|\{loc.name()}.run(computation)")
-  let unwrapper = Unwrapper::{  }
+  let unwrapper = Unwrapper::{ }
   computation(unwrapper)
 }
 
 ///|
-async fn[X] Backend::spawn(self : Backend, f : async () -> X) -> @async.Task[X] {
+fn[X] Backend::spawn(self : Backend, f : async () -> X) -> @async.Task[X] {
   self.group.spawn(f)
 }

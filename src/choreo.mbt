@@ -10,7 +10,7 @@ struct ChoreoContext {
 fn ChoreoContext::new(backend : Backend, role : &Location) -> ChoreoContext {
   let locations = backend.locations
   let logger = backend.logger
-  ChoreoContext::{ role, locations, backend, logger }
+  ChoreoContext::{ role, locations, backend, logger, }
 }
 
 ///|
@@ -27,7 +27,7 @@ pub async fn[T, L : Location] run_choreo(
 ) -> T {
   let context = ChoreoContext::new(backend, role)
   let locations = context.locations
-  if not(locations.contains(role)) {
+  if !locations.contains(role) {
     abort(
       "Bug: location " + role.name() + " is not registered. " + CONTACT_AUTHOR,
     )
@@ -41,7 +41,7 @@ fn[L : Location] ChoreoContext::check_location(
   self : ChoreoContext,
   location : L,
 ) -> Unit {
-  if not(self.locations.contains(location)) {
+  if !self.locations.contains(location) {
     abort(
       "Bug: location " +
       location.name() +
@@ -142,7 +142,7 @@ pub async fn ChoreoContext::enclave(
   locations : Array[&Location],
   subchoreo : Choreo[Unit],
 ) -> Unit {
-  if not(locations.contains(self.role)) {
+  if !locations.contains(self.role) {
     return
   }
   for loc in locations {
@@ -169,7 +169,7 @@ pub async fn[T : Message, L : Location] ChoreoContext::announce(
   located_value : Located[T, L],
   subchoreo : async (ChoreoContext, T) -> Unit,
 ) -> Unit {
-  self.enclave(targets + [loc], fn(ctx) {
+  self.enclave(targets + [loc], async fn(ctx) {
     let value = ctx.broadcast(loc, located_value)
     subchoreo(ctx, value)
   })
@@ -177,7 +177,7 @@ pub async fn[T : Message, L : Location] ChoreoContext::announce(
 
 ///|
 /// Spawn an asynchronous task.
-pub async fn[X] ChoreoContext::spawn(
+pub fn[X] ChoreoContext::spawn(
   self : ChoreoContext,
   f : async () -> X,
 ) -> @async.Task[X] {

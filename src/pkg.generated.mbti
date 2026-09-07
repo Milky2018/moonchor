@@ -1,64 +1,63 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Milky2018/moonchor"
 
-import(
-  "moonbitlang/async"
-  "moonbitlang/async/socket"
-  "moonbitlang/core/json"
-)
+import {
+  "moonbitlang/async",
+  "moonbitlang/async/socket",
+  "moonbitlang/core/json",
+}
 
 // Values
-fn make_console_logger() -> ConsoleLogger
+pub fn make_console_logger() -> ConsoleLogger
 
-fn make_http_backend(Array[(&Location, @socket.Addr)], @async.TaskGroup[Unit], logger? : &Logger) -> Backend
+pub fn make_http_backend(Array[(&Location, @socket.Addr)], @async.TaskGroup[Unit], logger? : &Logger) -> Backend
 
-fn make_local_backend(Array[&Location], @async.TaskGroup[Unit], logger? : &Logger) -> Backend
+pub fn make_local_backend(Array[&Location], @async.TaskGroup[Unit], logger? : &Logger) -> Backend
 
-fn make_mute_logger() -> MuteLogger
+pub fn make_mute_logger() -> MuteLogger
 
-async fn[T, L : Location] run_choreo(Backend, async (ChoreoContext) -> T, L) -> T
+pub async fn[T, L : Location] run_choreo(Backend, async (ChoreoContext) -> T, L) -> T
 
 // Errors
 
 // Types and methods
-type AsyncLocated[T, _]
-
 type Backend
-async fn[L : Location] Backend::init_at(Self, L) -> Unit
+pub async fn[L : Location] Backend::init_at(Self, L) -> Unit
 
 type ChoreoContext
-async fn[T : Message, L : Location] ChoreoContext::announce(Self, L, Array[&Location], Located[T, L], async (Self, T) -> Unit) -> Unit
-async fn[T : Message, L : Location] ChoreoContext::broadcast(Self, L, Located[T, L]) -> T
-async fn[T : Message, From : Location, To : Location] ChoreoContext::comm(Self, From, To, Located[T, From]) -> Located[T, To]
-async fn ChoreoContext::enclave(Self, Array[&Location], async (Self) -> Unit) -> Unit
-async fn[T, L : Location] ChoreoContext::locally(Self, L, async (Unwrapper[L]) -> T) -> Located[T, L]
-async fn[T : Message, L : Location] ChoreoContext::locally_broadcast(Self, L, async (Unwrapper[L]) -> T) -> T
+pub async fn[T : Message, L : Location] ChoreoContext::announce(Self, L, Array[&Location], Located[T, L], async (Self, T) -> Unit) -> Unit
+pub async fn[T : Message, L : Location] ChoreoContext::broadcast(Self, L, Located[T, L]) -> T
+pub async fn[T : Message, From : Location, To : Location] ChoreoContext::comm(Self, From, To, Located[T, From]) -> Located[T, To]
+pub async fn ChoreoContext::enclave(Self, Array[&Location], async (Self) -> Unit) -> Unit
+pub async fn[T, L : Location] ChoreoContext::locally(Self, L, async (Unwrapper[L]) -> T) -> Located[T, L]
+pub async fn[T : Message, L : Location] ChoreoContext::locally_broadcast(Self, L, async (Unwrapper[L]) -> T) -> T
+pub fn[X] ChoreoContext::spawn(Self, async () -> X) -> @async.Task[X]
 
 type ConsoleLogger
-impl Logger for ConsoleLogger
+pub fn ConsoleLogger::info(Self, String) -> Unit
+pub impl Logger for ConsoleLogger
 
 type Located[T, _]
-fn[T, L, R] Located::map(Self[T, L], (T) -> R) -> Self[R, L]
+pub fn[T, L, R] Located::map(Self[T, L], (T) -> R) -> Self[R, L]
 
 type MuteLogger
-impl Logger for MuteLogger
+pub fn MuteLogger::info(Self, String) -> Unit
+pub impl Logger for MuteLogger
 
 type Unwrapper[_]
-fn[T, L] Unwrapper::unwrap(Self[L], Located[T, L]) -> T
-async fn[T, L] Unwrapper::unwrap_async(Self[L], AsyncLocated[T, L]) -> T
+pub fn[T, L] Unwrapper::unwrap(Self[L], Located[T, L]) -> T
 
 // Type aliases
 pub type Choreo[T] = async (ChoreoContext) -> T
 
 // Traits
 pub(open) trait Location : Show + Hash {
-  name(Self) -> String
+  fn name(Self) -> String
 }
 
 pub trait Logger {
-  info(Self, String) -> Unit
+  fn info(Self, String) -> Unit
 }
 
 pub(open) trait Message : ToJson + @json.FromJson {
 }
-

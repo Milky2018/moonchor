@@ -1,6 +1,6 @@
 ///|
 pub trait Logger {
-  info(Self, String) -> Unit
+  fn info(Self, String) -> Unit
 }
 
 ///|
@@ -8,11 +8,11 @@ struct ConsoleLogger {}
 
 ///|
 pub fn make_console_logger() -> ConsoleLogger {
-  ConsoleLogger::{  }
+  ConsoleLogger::{ }
 }
 
 ///|
-pub impl Logger for ConsoleLogger with info(_self, msg) {
+pub impl Logger for ConsoleLogger with fn info(_self, msg) {
   println("[INFO] \{msg}")
 }
 
@@ -20,11 +20,17 @@ pub impl Logger for ConsoleLogger with info(_self, msg) {
 struct MuteLogger {}
 
 ///|
-pub impl Logger for MuteLogger with info(_self, _msg) {
+pub impl Logger for MuteLogger with fn info(_self, _msg) {
   // Do nothing
 }
 
 ///|
 pub fn make_mute_logger() -> MuteLogger {
-  MuteLogger::{  }
+  MuteLogger::{ }
 }
+
+///|
+pub extend ConsoleLogger with Logger::{info}
+
+///|
+pub extend MuteLogger with Logger::{info}

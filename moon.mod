@@ -1,0 +1,22 @@
+name = "Milky2018/moonchor"
+
+version = "0.19.1"
+
+import {
+  "moonbitlang/async@0.21.2",
+  "moonbitlang/dummy_abort@0.2.0",
+}
+
+readme = "README.md"
+
+repository = "https://github.com/Milky2018/moonchor.git"
+
+license = "Apache-2.0"
+
+keywords = [ "Choreographic", "MoonBit" ]
+
+description = "Choreographic programming library for MoonBit."
+
+source = "src"
+
+preferred_target = "native"
